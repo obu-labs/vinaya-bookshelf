@@ -1,0 +1,10 @@
+{
+	"id": "vinaya-notebook",
+	"name": "Vinaya Notebook",
+	"version": "0.0.1",
+	"minAppVersion": "0.15.0",
+	"description": "Coordinates the sharing of notes about the Vinaya.",
+	"author": "Khemarato Bhikkhu",
+	"authorUrl": "https://github.com/khemarato",
+	"isDesktopOnly": false
+}
