@@ -1,11 +1,45 @@
-import { App, Plugin, Notice, requestUrl } from "obsidian";
+import { App, Plugin, Notice, requestUrl, TFolder } from "obsidian";
 import * as JSZip from 'jszip';
+import { createHash } from "crypto";
+
+async function hashForFolder(folder: TFolder) {
+  const ret = createHash('md5');
+  const fileList: { path: string, hash: string }[] = [];
+  const folderList: TFolder[] = [];
+  folderList.push(folder);
+
+  while (folderList.length > 0) {
+    const subfolder = folderList.shift();
+    if (!subfolder) {
+      continue;
+    }
+    for (const child of subfolder.children) {
+      if (child instanceof TFolder) {
+        folderList.push(child);
+      } else {
+        const content = await child.vault.adapter.read(child.path);
+        const hash = createHash('md5').update(content).digest('hex');
+        fileList.push({ path: child.path, hash });
+      }
+    }
+  }
+
+  fileList.sort((a, b) => a.path.localeCompare(b.path));
+  for (const { path, hash } of fileList) {
+    ret.update(path);
+    ret.update(hash);
+  }
+  return ret.digest('hex');
+}
 
 async function downloadZip(url: string, targetFolder: string, app: App) {
   // Replaces `targetFolder` with the contents of the zip at `url`
+  // Returns an MD5 of the inflated directory's contents
   const response = await requestUrl(url);
   const zip = await JSZip.loadAsync(response.arrayBuffer);
   const folder = app.vault.getFolderByPath(targetFolder);
+  const ret = createHash('md5');
+  const fileList: { path: string, hash: string }[] = [];
   if (folder) {
     await app.vault.delete(folder, true);
   }
@@ -31,8 +65,19 @@ async function downloadZip(url: string, targetFolder: string, app: App) {
       await app.vault.createBinary(fullPath, content).catch((err: Error) => {
         console.error(`Failed to create file ${fullPath}:`, err);
       });
+      fileList.push({
+        path: fullPath,
+        hash: createHash('md5').update(content).digest('hex')
+      });
     }
   }
+
+  fileList.sort((a, b) => a.path.localeCompare(b.path));
+  for (const { path, hash } of fileList) {
+    ret.update(path);
+    ret.update(hash);
+  }
+  return ret.digest('hex');
 }
 
 interface VNMMetadata {
@@ -43,10 +88,15 @@ interface VNMMetadata {
   zip: string; // URL of the zip containing the folder's contents
 }
 
+interface InstalledFolderRecord {
+  version: string;
+  md5: string;
+}
+
 interface VNPluginData {
   knownFolders: Record<string, VNMMetadata>; // Mapping of folder name to VNM metadata
   lastUpdatedMetadata: number; // timestamp of last update
-  installedFolders: Record<string, string>; // Maps folder name to version
+  installedFolders: Record<string, InstalledFolderRecord>;
 }
 
 const DEFAULT_DATA: VNPluginData = {
@@ -77,10 +127,21 @@ export default class VinayaNotebookPlugin extends Plugin {
     const metadata: VNMMetadata = response.json;
     this.data.knownFolders["Ajahn Brahmali"] = metadata;
     this.data.lastUpdatedMetadata = Date.now();
-    if (!this.data.installedFolders["Ajahn Brahmali"] || this.data.installedFolders["Ajahn Brahmali"] !== metadata.version) {
-      new Notice(`Downloading new ${metadata.folder} note data...`);
-      await downloadZip(metadata.zip, metadata.folder, this.app);
-      this.data.installedFolders["Ajahn Brahmali"] = metadata.version;
+    if (!this.data.installedFolders["Ajahn Brahmali"] || this.data.installedFolders["Ajahn Brahmali"].version !== metadata.version) {
+      const folder = this.app.vault.getFolderByPath(metadata.folder);
+      if (this.data.installedFolders["Ajahn Brahmali"] && folder) {
+        const old_md5 = this.data.installedFolders["Ajahn Brahmali"].md5;
+        const cur_md5 = await hashForFolder(folder);
+        if (cur_md5 != old_md5) {
+          // TODO replace this notice with a real modal dialog
+          new Notice("!! OVERWRITING CHANGED DATA !!");
+        }
+      }
+      const md5 = await downloadZip(metadata.zip, metadata.folder, this.app);
+      this.data.installedFolders["Ajahn Brahmali"] = {
+        version: metadata.version,
+        md5: md5
+      };
     }
     await this.saveData(this.data);
     new Notice("Updated!");
