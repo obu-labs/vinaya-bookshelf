@@ -1,9 +1,29 @@
 import { App, Plugin, Notice, requestUrl, TFolder } from "obsidian";
 import * as JSZip from 'jszip';
-import { createHash } from "crypto";
 
-async function hashForFolder(folder: TFolder) {
-  const ret = createHash('md5');
+async function sha256(data: ArrayBufferLike): Promise<string> {
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+async function hashForFileList(fileList: { path: string, hash: string }[]): Promise<string> {
+  // Sort by paths so it's order agnostic
+  fileList.sort((a, b) => a.path.localeCompare(b.path));
+  
+  // Combine all paths and hashes into a single string
+  let combinedData = '';
+  for (const { path, hash } of fileList) {
+    combinedData += path + hash;
+  }
+  
+  // Hash the combined data
+  const combinedBuffer = new TextEncoder().encode(combinedData);
+  return await sha256(combinedBuffer);
+}
+
+async function hashForFolder(folder: TFolder): Promise<string> {
   const fileList: { path: string, hash: string }[] = [];
   const folderList: TFolder[] = [];
   folderList.push(folder);
@@ -17,19 +37,13 @@ async function hashForFolder(folder: TFolder) {
       if (child instanceof TFolder) {
         folderList.push(child);
       } else {
-        const content = await child.vault.adapter.read(child.path);
-        const hash = createHash('md5').update(content).digest('hex');
+        const content = await child.vault.adapter.readBinary(child.path);
+        const hash = await sha256(content);
         fileList.push({ path: child.path, hash });
       }
     }
   }
-
-  fileList.sort((a, b) => a.path.localeCompare(b.path));
-  for (const { path, hash } of fileList) {
-    ret.update(path);
-    ret.update(hash);
-  }
-  return ret.digest('hex');
+  return await hashForFileList(fileList);
 }
 
 async function downloadZip(url: string, targetFolder: string, app: App) {
@@ -38,7 +52,6 @@ async function downloadZip(url: string, targetFolder: string, app: App) {
   const response = await requestUrl(url);
   const zip = await JSZip.loadAsync(response.arrayBuffer);
   const folder = app.vault.getFolderByPath(targetFolder);
-  const ret = createHash('md5');
   const fileList: { path: string, hash: string }[] = [];
   if (folder) {
     await app.vault.delete(folder, true);
@@ -65,19 +78,15 @@ async function downloadZip(url: string, targetFolder: string, app: App) {
       await app.vault.createBinary(fullPath, content).catch((err: Error) => {
         console.error(`Failed to create file ${fullPath}:`, err);
       });
+      const hash = await sha256(content);
       fileList.push({
         path: fullPath,
-        hash: createHash('md5').update(content).digest('hex')
+        hash: hash
       });
     }
   }
 
-  fileList.sort((a, b) => a.path.localeCompare(b.path));
-  for (const { path, hash } of fileList) {
-    ret.update(path);
-    ret.update(hash);
-  }
-  return ret.digest('hex');
+  return await hashForFileList(fileList);
 }
 
 interface VNMMetadata {
