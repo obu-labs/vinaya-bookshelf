@@ -1,4 +1,4 @@
-import { normalizePath, Notice } from "obsidian";
+import { App, normalizePath, Notice } from "obsidian";
 import confirmationModal from "./confirmationmodal";
 import VinayaNotebookPlugin from "./main";
 
@@ -10,14 +10,32 @@ const ENFORCED_APP_SETTINGS: Record<string, any> = {
   "newLinkFormat": "relative",
   "useMarkdownLinks": true,
   "newFileLocation": "folder",
-  /* TODO: get these from plugin settings
-  "newFileFolderPath": newFileFolderPath,
-  "attachmentFolderPath": `${newFileFolderPath}/attachments`
-  */
+};
+
+export function recommended_app_settings(newFileFolderPath: string): Record<string, any> {
+  return Object.assign({}, ENFORCED_APP_SETTINGS, {
+    "newFileFolderPath": newFileFolderPath,
+    "attachmentFolderPath": `${newFileFolderPath}/attachments`
+  });
 }
 
 export function is_settings_modal_open() {
   return document.getElementsByClassName("modal mod-settings").length > 0;
+}
+
+export function app_settings_path(app: App): string {
+  const config_dir = app.vault.configDir;
+  const app_settings_path = `${config_dir}/app.json`;
+  return normalizePath(app_settings_path);
+}
+
+export async function get_app_settings(app: App): Promise<Record<string, any>> {
+  let config_json = await app.vault.adapter.read(app_settings_path(app));
+  let config: Record<string, any> = {};
+  if (config_json) {
+    config = JSON.parse(config_json);
+  }
+  return config;
 }
 
 export async function checkAppSettings(plugin: VinayaNotebookPlugin) {
@@ -27,14 +45,8 @@ export async function checkAppSettings(plugin: VinayaNotebookPlugin) {
     }, 800); // Try again quickly as this is a cheap check
     return;
   }
-  const config_dir = plugin.app.vault.configDir;
-  const app_settings_path = `${config_dir}/app.json`;
-  let config_json = await plugin.app.vault.adapter.read(app_settings_path);
-  let config: Record<string, any> = {};
+  let config = await get_app_settings(plugin.app);
   let changed_settings: Map<string, string> = new Map<string, string>();
-  if (config_json) {
-    config = JSON.parse(config_json);
-  }
   for (const key in ENFORCED_APP_SETTINGS) {
     if (config[key] !== ENFORCED_APP_SETTINGS[key]) {
       changed_settings.set(key, config[key]);
@@ -96,8 +108,8 @@ export async function checkAppSettings(plugin: VinayaNotebookPlugin) {
       return;
     }
     await plugin.app.vault.adapter.write(
-      normalizePath(app_settings_path),
-      JSON.stringify(config),
+      app_settings_path(plugin.app),
+      JSON.stringify(config, null, "2"),
     );
     new Notice("Settings reverted successfully.");
   }

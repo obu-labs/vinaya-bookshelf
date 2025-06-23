@@ -1,4 +1,4 @@
-import { Plugin, Notice, normalizePath } from "obsidian";
+import { Plugin } from "obsidian";
 
 import { 
   FolderName,
@@ -9,7 +9,10 @@ import {
   VNMMetadata,
   VNMUpdater
 } from "./update";
-import { checkAppSettings } from "./appsettings";
+import {
+  checkAppSettings,
+} from "./appsettings";
+import openNuxModelWhenReady from "./nux";
 
 interface VNPluginData {
   canonicalVNMs: Record<FolderName, URLString>;
@@ -17,6 +20,7 @@ interface VNPluginData {
   lastUpdatedTimes: Record<string, number>;
   installedFolders: Record<FolderName, InstalledFolderRecord>;
   disabledSettingsCheck: number; // TODO Add a toggle in the settings panel
+  nuxShown: number;
 }
 
 const DEFAULT_DATA: VNPluginData = {
@@ -25,6 +29,7 @@ const DEFAULT_DATA: VNPluginData = {
   lastUpdatedTimes: {},
   installedFolders: {},
   disabledSettingsCheck: 0,
+  nuxShown: 0,
 };
 
 export default class VinayaNotebookPlugin extends Plugin {
@@ -34,17 +39,14 @@ export default class VinayaNotebookPlugin extends Plugin {
   async onload() {
     this.data = Object.assign({}, DEFAULT_DATA, await this.loadData());
 
-    // All the things that take time should be off the critical path
-
-    if (this.data.disabledSettingsCheck == 0) {
-      setTimeout(async () => {
-        await checkAppSettings(this);
-      }, 1000);
-    } // TODO: If they disabled some time ago, maybe ask them to reenable
-
+    // Defer checks until everything is loaded
     setTimeout(async () => {
-      await this.initiate_background_update();
-    }, 5000);
+      if (!this.data.nuxShown) {
+        await openNuxModelWhenReady(this);
+      } else {
+        await this.initiate_background_update();
+      }
+    }, 1000);
   }
 
   onunload() {
@@ -58,17 +60,20 @@ export default class VinayaNotebookPlugin extends Plugin {
   async initiate_background_update() {
     const root_updater = new VNMListUpdater(this);
     if (root_updater.needs_update()) {
-      root_updater.update();
+      await root_updater.update();
     }
     for (const folder_name in this.data.canonicalVNMs) {
       const vnm_updater = new VNMUpdater(this, folder_name);
       if (vnm_updater.needs_update()) {
-        vnm_updater.update();
+        await vnm_updater.update();
       }
       const folder_updater = new FolderUpdater(this, folder_name);
       if (folder_updater.needs_update()) {
-        folder_updater.update();
+        await folder_updater.update();
       }
+    }
+    if (!this.data.disabledSettingsCheck) {
+      await checkAppSettings(this);
     }
   }
 }

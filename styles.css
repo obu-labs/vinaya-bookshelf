@@ -6,3 +6,13 @@
 .modal-button-container .danger-button:hover {
   background-color: #c9302c;
 }
+
+.nux-modal .nux-modal-header{
+  text-align: center;
+}
+.nux-modal-header .nux-modal-title {
+  margin: 7px auto 0.15em;
+}
+.nux-modal-header .nux-modal-subtitle {
+  margin: 0 auto 1em;
+}
