@@ -98,7 +98,7 @@ export class VNMUpdater extends BaseDatumUpdater {
   }
   
   get_id(): string {
-    return (this.folder_name + " VNM").replace(/ /g, "_");
+    return (this.folder_name + " VNM");
   }
 
   data_is_incomplete(): boolean {
@@ -131,7 +131,7 @@ export class FolderUpdater extends BaseDatumUpdater {
   }
 
   get_id(): string {
-    return (this.folder_name + " Folder").replace(/ /g, "_");
+    return (this.folder_name + " Folder");
   }
 
   is_installed(): boolean {
