@@ -16,13 +16,15 @@ const ENFORCED_APP_SETTINGS: Record<string, any> = {
   */
 }
 
+export function is_settings_modal_open() {
+  return document.getElementsByClassName("modal mod-settings").length > 0;
+}
+
 export async function checkAppSettings(plugin: VinayaNotebookPlugin) {
-  if (document.getElementsByClassName("modal mod-settings").length > 0) {
-    // The settings panel is currently open
-    // Check again soon
+  if (is_settings_modal_open()) {
     plugin.settingsChecker = setTimeout(async () => {
       await checkAppSettings(plugin);
-    }, 800);
+    }, 800); // Try again quickly as this is a cheap check
     return;
   }
   const config_dir = plugin.app.vault.configDir;
@@ -30,12 +32,12 @@ export async function checkAppSettings(plugin: VinayaNotebookPlugin) {
   let config_json = await plugin.app.vault.adapter.read(app_settings_path);
   let config: Record<string, any> = {};
   let changed_settings: Map<string, string> = new Map<string, string>();
-  if (config) {
+  if (config_json) {
     config = JSON.parse(config_json);
   }
   for (const key in ENFORCED_APP_SETTINGS) {
     if (config[key] !== ENFORCED_APP_SETTINGS[key]) {
-      changed_settings.set(key, config[key].toString());
+      changed_settings.set(key, config[key]);
       config[key] = ENFORCED_APP_SETTINGS[key];
     }
   }
@@ -82,7 +84,7 @@ export async function checkAppSettings(plugin: VinayaNotebookPlugin) {
     }
     const disable_checker = await confirmationModal(
       "You changed your vault settings",
-      `It seems that ${settings_string} This may cause the notes that you take to become incompatible with other applications. Would you like to revert to the recommended settings?`,
+      `It seems that ${settings_string} This may cause the notes that you take to become incompatible with other applications. Would you like to revert back to the recommended settings?`,
       plugin.app,
       "Stop Checking Compatibility",
       "Revert Settings to Safer Defaults",
