@@ -171,17 +171,18 @@ export class FolderUpdater extends BaseDatumUpdater {
         return true;
       }
     }
+    const vnm_data = this.plugin.data.knownFolders[this.folder_name];
     try {
       const hash = await downloadZip(
-        this.plugin.data.knownFolders[this.folder_name].zip,
+        vnm_data.zip,
         this.folder_name,
         this.plugin.app,
       );
       this.plugin.data.installedFolders[this.folder_name] = {
-        version: this.plugin.data.knownFolders[this.folder_name].version,
+        version: vnm_data.version,
         hash: hash
       };
-      new Notice(`Updated "${this.folder_name}" folder!`);
+      new Notice(`"${this.folder_name}" v${vnm_data.version} installed!`);
     } catch (e) {
       console.error(e);
     }

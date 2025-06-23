@@ -40,13 +40,11 @@ export default class VinayaNotebookPlugin extends Plugin {
   async initiate_background_update() {
     const root_updater = new VNMListUpdater(this);
     if (root_updater.needs_update()) {
-      new Notice("Checking for new folders...");
       root_updater.update();
     }
     for (const folder_name in this.data.canonicalVNMs) {
       const vnm_updater = new VNMUpdater(this, folder_name);
       if (vnm_updater.needs_update()) {
-        new Notice(`Fetching "${folder_name}" metadata...`);
         vnm_updater.update();
       }
       const folder_updater = new FolderUpdater(this, folder_name);
