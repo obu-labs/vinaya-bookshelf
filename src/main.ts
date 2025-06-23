@@ -1,4 +1,4 @@
-import { Plugin, Notice, requestUrl } from "obsidian";
+import { Plugin, Notice, normalizePath } from "obsidian";
 
 import { 
   FolderName,
@@ -9,12 +9,14 @@ import {
   VNMMetadata,
   VNMUpdater
 } from "./update";
+import { checkAppSettings } from "./appsettings";
 
 interface VNPluginData {
   canonicalVNMs: Record<FolderName, URLString>;
   knownFolders: Record<FolderName, VNMMetadata>;
   lastUpdatedTimes: Record<string, number>;
   installedFolders: Record<FolderName, InstalledFolderRecord>;
+  disabledSettingsCheck: number; // TODO Add a toggle in the settings panel
 }
 
 const DEFAULT_DATA: VNPluginData = {
@@ -22,17 +24,31 @@ const DEFAULT_DATA: VNPluginData = {
   knownFolders: {},
   lastUpdatedTimes: {},
   installedFolders: {},
+  disabledSettingsCheck: 0,
 };
 
 export default class VinayaNotebookPlugin extends Plugin {
   data: VNPluginData;
+  settingsChecker: any;
 
   async onload() {
     this.data = Object.assign({}, DEFAULT_DATA, await this.loadData());
 
+    // All the things that take time should be off the critical path
+
+    if (this.data.disabledSettingsCheck == 0) {
+      setTimeout(async () => {
+        await checkAppSettings(this);
+      }, 1000);
+    } // TODO: If they disabled some time ago, maybe ask them to reenable
+
     setTimeout(async () => {
       await this.initiate_background_update();
-    }, 1000); // Wait until after the plugin is loaded to not lock up the UI
+    }, 5000);
+  }
+
+  onunload() {
+    clearTimeout(this.settingsChecker);
   }
 
   async save() {
