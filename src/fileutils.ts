@@ -2,9 +2,12 @@ import { App, requestUrl } from "obsidian";
 import * as JSZip from 'jszip';
 import { hashForFileList, sha256 } from "./hashutils";
 
+/**
+ * Replaces `targetFolder` with the contents of the zip at `url`
+ * 
+ * @returns an SHA256 hash of the inflated directory's contents
+ */
 export async function downloadZip(url: string, targetFolder: string, app: App) {
-  // Replaces `targetFolder` with the contents of the zip at `url`
-  // Returns an SHA256 hash of the inflated directory's contents
   const response = await requestUrl(url);
   const zip = await JSZip.loadAsync(response.arrayBuffer);
   const folder = app.vault.getFolderByPath(targetFolder);

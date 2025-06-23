@@ -2,13 +2,17 @@ import { Notice, requestUrl } from "obsidian";
 import VinayaNotebookPlugin from "./main";
 import { hashForFolder } from "./hashutils";
 import { downloadZip } from "./fileutils";
+import confirmationModal from "./confirmationmodal";
+
+export type FolderName = string;
+export type URLString = string;
 
 export interface VNMMetadata {
-  folder: string; // The folder name as realized
+  folder: FolderName; // The folder name as realized
   more_info: string; // Link to learn about this folder
   version: string; // Latest version in MAJOR.MINOR.PATCH format
   requires: Record<string, string>; // Mapping of other folder to version
-  zip: string; // URL of the zip containing the folder's contents
+  zip: URLString; // URL of the zip containing the folder's contents
 }
 
 export interface InstalledFolderRecord {
@@ -30,8 +34,12 @@ class BaseDatumUpdater {
     return false;
   }
 
+  /**
+   * The logic for actually doing the update.
+   * 
+   * @returns true if it would like to save the plugin's data
+   */
   async perform_update(): Promise<boolean> {
-    // returns true iff data written successfully
     return false;
   }
 
@@ -166,11 +174,20 @@ export class FolderUpdater extends BaseDatumUpdater {
         }
       }
       if (needs_warning) {
-        // TODO replace this notice with a real modal dialog
-        new Notice("!! REFUSING TO OVERWRITE CHANGED DATA !!");
-        return true;
+        const user_confirmed = await confirmationModal(
+          `Update the "${this.folder_name}" folder?`,
+          `The "${this.folder_name}" folder has a new version available, but the version you currently have has been modified. If you proceed to install the new version, those changes will be lost.`,
+          this.plugin.app,
+          "Overwite Changes",
+          "Ask me again tomorrow",
+        )
+        if (!user_confirmed) {
+          return true; // save the timestamp of this refusal
+        }
       }
     }
+
+    new Notice(`Installing new "${this.folder_name}" folder...`);
     const vnm_data = this.plugin.data.knownFolders[this.folder_name];
     try {
       const hash = await downloadZip(
@@ -185,6 +202,7 @@ export class FolderUpdater extends BaseDatumUpdater {
       new Notice(`"${this.folder_name}" v${vnm_data.version} installed!`);
     } catch (e) {
       console.error(e);
+      new Notice(`Failed to install "${this.folder_name}"!`);
     }
     return true;
   }

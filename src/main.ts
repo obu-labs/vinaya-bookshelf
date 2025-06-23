@@ -1,6 +1,8 @@
 import { Plugin, Notice, requestUrl } from "obsidian";
 
 import { 
+  FolderName,
+  URLString,
   FolderUpdater,
   InstalledFolderRecord,
   VNMListUpdater,
@@ -9,10 +11,10 @@ import {
 } from "./update";
 
 interface VNPluginData {
-  canonicalVNMs: Record<string, string>; // Maps folder name to VNM URL
-  knownFolders: Record<string, VNMMetadata>; // Mapping of folder name to VNM metadata
+  canonicalVNMs: Record<FolderName, URLString>;
+  knownFolders: Record<FolderName, VNMMetadata>;
   lastUpdatedTimes: Record<string, number>;
-  installedFolders: Record<string, InstalledFolderRecord>;
+  installedFolders: Record<FolderName, InstalledFolderRecord>;
 }
 
 const DEFAULT_DATA: VNPluginData = {
@@ -49,7 +51,6 @@ export default class VinayaNotebookPlugin extends Plugin {
       }
       const folder_updater = new FolderUpdater(this, folder_name);
       if (folder_updater.needs_update()) {
-        new Notice(`Installing new "${folder_name}" folder...`);
         folder_updater.update();
       }
     }
