@@ -20,13 +20,11 @@ export async function checkAppSettings(plugin: VinayaNotebookPlugin) {
   if (document.getElementsByClassName("modal mod-settings").length > 0) {
     // The settings panel is currently open
     // Check again soon
-    console.log("Skipping check while settings open...")
     plugin.settingsChecker = setTimeout(async () => {
       await checkAppSettings(plugin);
     }, 800);
     return;
   }
-  console.log("Checking settings...")
   const config_dir = plugin.app.vault.configDir;
   const app_settings_path = `${config_dir}/app.json`;
   let config_json = await plugin.app.vault.adapter.read(app_settings_path);
