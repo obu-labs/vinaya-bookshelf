@@ -109,7 +109,7 @@ export async function checkAppSettings(plugin: VinayaNotebookPlugin) {
     }
     await plugin.app.vault.adapter.write(
       app_settings_path(plugin.app),
-      JSON.stringify(config, null, "2"),
+      JSON.stringify(config, null, 2),
     );
     new Notice("Settings reverted successfully.");
   }

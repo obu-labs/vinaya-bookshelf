@@ -10,6 +10,7 @@ export type URLString = string;
 export interface VNMMetadata {
   folder: FolderName; // The folder name as realized
   more_info: string; // Link to learn about this folder
+  description?: string; // Description of the folder TODO make not optional?
   version: string; // Latest version in MAJOR.MINOR.PATCH format
   requires: Record<string, string>; // Mapping of other folder to version
   zip: URLString; // URL of the zip containing the folder's contents
@@ -129,9 +130,11 @@ export class VNMUpdater extends BaseDatumUpdater {
 
 export class FolderUpdater extends BaseDatumUpdater {
   folder_name: string;
+  warn_about_overwrites: boolean;
   constructor(plugin: VinayaNotebookPlugin, folder_name: string) {
     super(plugin);
     this.folder_name = folder_name;
+    this.warn_about_overwrites = true;
   }
 
   check_how_often(): number {
@@ -154,6 +157,13 @@ export class FolderUpdater extends BaseDatumUpdater {
     return !this.is_installed() || !this.is_at_latest_version();
   }
 
+  is_expired(): boolean {
+    if (this.warn_about_overwrites) {
+      return super.is_expired();
+    }
+    return true; // If we aren't warning, consider their dismissal expired
+  }
+
   needs_update(): boolean {
     // slightly different logic here because
     // the expiry is a retry timeout not a frequency
@@ -164,7 +174,7 @@ export class FolderUpdater extends BaseDatumUpdater {
     // We return true here even if it fails
     // because we always want to record the time of our attempt
     const folder = this.plugin.app.vault.getFolderByPath(this.folder_name);
-    if (folder) {
+    if (this.warn_about_overwrites && folder) {
       let needs_warning = true;
       if (this.is_installed()) {
         const old_hash = this.plugin.data.installedFolders[this.folder_name].hash;
