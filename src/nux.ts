@@ -1,4 +1,4 @@
-import { App, Modal, normalizePath, Notice, setIcon, Setting } from "obsidian";
+import { App, ButtonComponent, Modal, normalizePath, Notice, setIcon, Setting } from "obsidian";
 import VinayaNotebookPlugin from "./main";
 import {
   is_settings_modal_open,
@@ -14,6 +14,7 @@ const INITIAL_NEW_FILE_PATH = "My Drafts";
 class NuxModal extends Modal {
   plugin: VinayaNotebookPlugin;
   folderNameSpan: HTMLSpanElement;
+  submit_button: ButtonComponent;
   constructor(plugin: VinayaNotebookPlugin) {
     const app = plugin.app;
     super(app);
@@ -34,20 +35,24 @@ class NuxModal extends Modal {
       .addText((text) =>
         text.setValue(name).onChange((value) => {
           name = value;
+          this.submit_button.setDisabled(name.length < 2);
         }));
     settings.createEl("p", { text: "This will be the name of the folder where your notes will be created. You can change this later in \"File and Link\" settings. Vinaya Notebook does not collect any personal information about its users." });
 
     new Setting(first_page)
-      .addButton((btn) =>
+      .addButton((btn) => {
         btn
           .setButtonText('Submit')
+          .setDisabled(name.length < 2)
           .setCta()
           .onClick(() => {
             this.submit(name);
             this.folderNameSpan.setText(name);
             first_page.addClass("hidden");
             second_page.removeClass("hidden");
-          }));
+          });
+        this.submit_button = btn;
+      });
     
     const second_header = second_page.createDiv({ cls: "nux-modal-header" });
     second_header.createEl("h2", { text: "How the Notebook Works", cls: "nux-modal-title" });
@@ -69,6 +74,7 @@ class NuxModal extends Modal {
       this.download_folder(folder_name, spinner);
     }
     second_page.createEl("p", { text: "The Vinaya Notebook Plugin will automatically update these folders, so don't make any changes to them. Your personal folder is not backed up to the cloud or shared with anyone, but you're welcome to do so yourself! Simply copy your notes folder (with the same name!) into someone else's Vinaya Notes vault." });
+    second_page.createEl("p", { text: "For more information about how Vinaya Notebook works, see " }).createEl("a", { text: "the documentation.", href: "https://obu-labs.github.io/vinaya" });
     
     new Setting(second_page).addButton((btn) =>
       btn
