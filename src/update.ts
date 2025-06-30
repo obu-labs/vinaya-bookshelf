@@ -94,7 +94,11 @@ export class VNMListUpdater extends BaseDatumUpdater {
 
   async perform_update() {
     // Stub for now.  In the future, really fetch this list
-    this.plugin.data.canonicalVNMs["Ajahn Brahmali"] = "https://github.com/obu-labs/brahmali-vinaya-notes/releases/latest/download/brahmali.vnm";
+    this.plugin.data.canonicalVNMs = {
+      "Ajahn Brahmali": "https://github.com/obu-labs/brahmali-vinaya-notes/releases/latest/download/manifest.vnm",
+      "Canon (Pali)": "https://github.com/obu-labs/pali-vinaya-notes/releases/latest/download/manifest.vnm",
+      "Bhante Suddhaso": "https://github.com/obu-labs/suddhaso-vinaya-notes/releases/latest/download/manifest.vnm",
+    };
     return true;
   }
 }
