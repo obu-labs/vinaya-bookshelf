@@ -39,7 +39,7 @@ export async function downloadZip(url: string, targetFolder: string, app: App) {
       });
       const hash = await sha256(content);
       fileList.push({
-        path: fullPath,
+        path: fullPath.substring(targetFolder.length + 1),
         hash: hash
       });
     }

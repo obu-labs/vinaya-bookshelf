@@ -9,7 +9,7 @@ export async function sha256(data: ArrayBufferLike): Promise<string> {
 
 export async function hashForFileList(fileList: { path: string, hash: string }[]): Promise<string> {
   // Sort by paths so it's order agnostic
-  fileList.sort((a, b) => a.path.localeCompare(b.path));
+  fileList.sort((a, b) => a.hash.localeCompare(b.hash));
   
   // Combine all paths and hashes into a single string
   let combinedData = '';
@@ -38,7 +38,7 @@ export async function hashForFolder(folder: TFolder): Promise<string> {
       } else {
         const content = await child.vault.adapter.readBinary(child.path);
         const hash = await sha256(content);
-        fileList.push({ path: child.path, hash });
+        fileList.push({ path: child.path.substring(folder.path.length + 1), hash });
       }
     }
   }
