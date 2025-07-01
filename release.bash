@@ -30,12 +30,12 @@ then
 fi
 
 # --- 4. Update package.json -----------------------------------------------
-node - <<NODE "$new_version"
+node -e "
   const fs = require('fs');
-  const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
-  pkg.version = process.argv[1];
+  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  pkg.version = '$new_version';
   fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-NODE
+" || die "Failed to update package.json"
 echo "package.json updated to $new_version"
 
 # --- 5. Propagate version & build -----------------------------------------
