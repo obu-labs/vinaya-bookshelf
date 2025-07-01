@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# release.bash – Automate releasing a new version of an Obsidian plugin
+# release.bash – Automate releasing a new version of the Obsidian plugin
 # Usage: ./release.bash
 set -euo pipefail
 
@@ -60,20 +60,9 @@ while IFS= read -r line; do
   release_notes+=$'\n'"$line"
 done
 
-# --- 10‑11. Create GitHub release & upload assets -------------------------
+# --- 10. Create GitHub release & upload assets -------------------------
+echo "Creating GitHub release..."
 gh release create "$new_version" \
   main.js styles.css manifest.json \
   --title "$new_version" \
   --notes "$release_notes"
-
-# --- 12. Show release URL --------------------------------------------------
-remote=$(git config --get remote.origin.url)
-remote=${remote%.git}
-case $remote in
-  git@github.com:*) remote=${remote#git@github.com:}; url="https://github.com/$remote" ;;
-  https://github.com/*) url=$remote ;;
-  *) die "Unrecognized remote URL: $remote" ;;
-esac
-
-echo "🎉 Release published:"
-echo "   $url/releases/tag/$new_version"
