@@ -47,7 +47,7 @@ echo "Build succeeded"
 
 # --- 6‑8. Commit, tag, and push -------------------------------------------
 git add .
-git commit -m "Release $new_version"
+git commit -m "Release $new_version" || echo ""
 git tag "$new_version"
 git push origin HEAD
 git push origin "$new_version"
