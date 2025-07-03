@@ -4,6 +4,8 @@ import { hashForFolder } from "./hashutils";
 import { downloadZip } from "./fileutils";
 import confirmationModal from "./confirmationmodal";
 
+const CANONICAL_VNM_LIST_URL = "https://labs.buddhistuniversity.net/vinaya/canonicalvnms.json";
+
 export type FolderName = string;
 export type URLString = string;
 
@@ -93,13 +95,15 @@ export class VNMListUpdater extends BaseDatumUpdater {
   }
 
   async perform_update() {
-    // Stub for now.  In the future, really fetch this list from the website.
-    this.plugin.data.canonicalVNMs = {
-      "Ajahn Brahmali": "https://github.com/obu-labs/brahmali-vinaya-notes/releases/latest/download/manifest.vnm",
-      "Canon (Pali)": "https://github.com/obu-labs/pali-vinaya-notes/releases/latest/download/manifest.vnm",
-      "Bhante Suddhaso": "https://github.com/obu-labs/suddhaso-vinaya-notes/releases/latest/download/manifest.vnm",
-    };
-    return true;
+    try {
+      const response = await requestUrl(CANONICAL_VNM_LIST_URL);
+      const vnm_list: Record<FolderName, URLString> = response.json;
+      this.plugin.data.canonicalVNMs = vnm_list;
+      return true;
+    } catch (e) {
+      console.error(e);
+    }
+    return false;
   }
 }
 

@@ -43,6 +43,15 @@ export default class VinayaNotebookPlugin extends Plugin {
     setTimeout(async () => {
       if (!this.data.nuxShown) {
         new Notice("The Vinaya Notebook Plugin is Enabled!");
+        if (!Object.entries(this.data.canonicalVNMs).length) {
+          // Initialize with a basic set in case the canonical url is down
+          this.data.canonicalVNMs =  {
+            "Ajahn Brahmali": "https://github.com/obu-labs/brahmali-vinaya-notes/releases/latest/download/manifest.vnm",
+            "Canon (Pali)": "https://github.com/obu-labs/pali-vinaya-notes/releases/latest/download/manifest.vnm",
+            "Bhante Suddhaso": "https://github.com/obu-labs/suddhaso-vinaya-notes/releases/latest/download/manifest.vnm",
+          };
+          await this.save();
+        }
       }
       await this.initiate_background_update();
       if (!this.data.nuxShown) {
