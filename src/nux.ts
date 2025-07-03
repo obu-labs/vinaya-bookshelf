@@ -87,7 +87,8 @@ class NuxModal extends Modal {
   async submit(name: string) {
     let app_settings = await get_app_settings(this.app);
     name = normalizePath(name);
-    app_settings = recommended_app_settings(name);
+    app_settings["newFileFolderPath"] = name;
+    app_settings["attachmentFolderPath"] = `${name}/attachments`;
     this.app.vault.adapter.mkdir(name);
     await this.app.vault.adapter.write(
       app_settings_path(this.app),

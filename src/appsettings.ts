@@ -14,6 +14,13 @@ const ENFORCED_APP_SETTINGS: Record<string, any> = {
 
 export function recommended_app_settings(newFileFolderPath: string): Record<string, any> {
   return Object.assign({}, ENFORCED_APP_SETTINGS, {
+    "propertiesInDocument": "visible",
+    "spellcheck": false,
+    "useTab": false,
+    "tabSize": 4,
+    "userIgnoreFilters": [
+      ".git"
+    ],
     "newFileFolderPath": newFileFolderPath,
     "attachmentFolderPath": `${newFileFolderPath}/attachments`
   });
