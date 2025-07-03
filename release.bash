@@ -68,3 +68,8 @@ gh release create "$new_version" \
   main.js styles.css manifest.json \
   --title "$new_version" \
   --notes "$release_notes"
+
+# --- 11. Redeploy the website with the new release ----------------------
+echo "Redeploying website..."
+gh --repo obu-labs/vinaya workflow run build.yaml
+
