@@ -43,9 +43,10 @@ export default class VinayaNotebookPlugin extends Plugin {
     setTimeout(async () => {
       if (!this.data.nuxShown) {
         new Notice("The Vinaya Notebook Plugin is Enabled!");
+      }
+      await this.initiate_background_update();
+      if (!this.data.nuxShown) {
         await openNuxModelWhenReady(this);
-      } else {
-        await this.initiate_background_update();
       }
     }, 500);
   }
@@ -63,18 +64,31 @@ export default class VinayaNotebookPlugin extends Plugin {
     if (root_updater.needs_update()) {
       await root_updater.update();
     }
+
+    const updatePromises: Promise<void>[] = [];
     for (const folder_name in this.data.canonicalVNMs) {
       const vnm_updater = new VNMUpdater(this, folder_name);
       if (vnm_updater.needs_update()) {
-        await vnm_updater.update();
-      }
-      const folder_updater = new FolderUpdater(this, folder_name);
-      if (folder_updater.needs_update()) {
-        await folder_updater.update();
+        updatePromises.push(vnm_updater.update());
       }
     }
+    await Promise.all(updatePromises);
+    
+    if (!this.data.nuxShown) {
+      return; // Let the NUX handle the rest
+    }
+    
     if (!this.data.disabledSettingsCheck) {
       await checkAppSettings(this);
     }
+
+    const downloadPromises: Promise<void>[] = [];
+    for (const folder_name in this.data.canonicalVNMs) {
+      const folder_updater = new FolderUpdater(this, folder_name);
+      if (folder_updater.needs_update()) {
+        downloadPromises.push(folder_updater.update());
+      }
+    }
+    await Promise.all(downloadPromises);
   }
 }

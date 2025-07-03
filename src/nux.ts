@@ -129,15 +129,6 @@ export default async function openNuxModelWhenReady(plugin: VinayaNotebookPlugin
         JSON.stringify(app_settings, null, 2),
       );
     }
-    // Make sure we have the list of VNMs and that they are up to date
-    // The Modal will handle downloading the folders as needed
-    new Notice("Checking for updates...");
-    const listUpdater = new VNMListUpdater(plugin);
-    await listUpdater.update();
-    for (const folder_name in plugin.data.canonicalVNMs) {
-      const vnm_updater = new VNMUpdater(plugin, folder_name);
-      await vnm_updater.update();
-    }
     plugin.data.nuxShown = Date.now();
     await plugin.save();
     new NuxModal(plugin).open();
