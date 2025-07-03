@@ -86,8 +86,9 @@ class NuxModal extends Modal {
   }
   async submit(name: string) {
     let app_settings = await get_app_settings(this.app);
-    app_settings["newFileFolderPath"] = name;
-    this.app.vault.adapter.mkdir(normalizePath(name));
+    name = normalizePath(name);
+    app_settings = recommended_app_settings(name);
+    this.app.vault.adapter.mkdir(name);
     await this.app.vault.adapter.write(
       app_settings_path(this.app),
       JSON.stringify(app_settings, null, 2),
@@ -129,6 +130,7 @@ export default async function openNuxModelWhenReady(plugin: VinayaNotebookPlugin
     }
     // Make sure we have the list of VNMs and that they are up to date
     // The Modal will handle downloading the folders as needed
+    new Notice("Checking for updates...");
     const listUpdater = new VNMListUpdater(plugin);
     await listUpdater.update();
     for (const folder_name in plugin.data.canonicalVNMs) {

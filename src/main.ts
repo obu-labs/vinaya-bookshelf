@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Notice, Plugin } from "obsidian";
 
 import { 
   FolderName,
@@ -42,11 +42,12 @@ export default class VinayaNotebookPlugin extends Plugin {
     // Defer checks until everything is loaded
     setTimeout(async () => {
       if (!this.data.nuxShown) {
+        new Notice("The Vinaya Notebook Plugin is Enabled!");
         await openNuxModelWhenReady(this);
       } else {
         await this.initiate_background_update();
       }
-    }, 1000);
+    }, 500);
   }
 
   onunload() {

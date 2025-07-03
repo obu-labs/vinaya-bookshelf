@@ -8,7 +8,7 @@ export async function sha256(data: ArrayBufferLike): Promise<string> {
 }
 
 export async function hashForFileList(fileList: { path: string, hash: string }[]): Promise<string> {
-  // Sort by paths so it's order agnostic
+  // Sort by hash so it's order agnostic
   fileList.sort((a, b) => a.hash.localeCompare(b.hash));
   
   // Combine all paths and hashes into a single string
