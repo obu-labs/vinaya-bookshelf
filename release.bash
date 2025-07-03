@@ -6,6 +6,12 @@ set -euo pipefail
 # --- Helpers ---------------------------------------------------------------
 die() { echo "❌ $1" >&2; exit 1; }
 
+# --- 0. Make sure the build works -----------------------------------------
+rm -f main.js
+npm run build
+[[ -f main.js ]] || die "Build failed: please fix and try again"
+echo "Build succeeded"
+
 # --- 1. Show current version ----------------------------------------------
 current_version=$(node -p "require('./package.json').version") \
   || die "Could not read current version from package.json"
@@ -38,12 +44,8 @@ node -e "
 " || die "Failed to update package.json"
 echo "package.json updated to $new_version"
 
-# --- 5. Propagate version & build -----------------------------------------
+# --- 5. Propagate version -------------------------------------------------
 npm run version
-rm -f main.js
-npm run build
-[[ -f main.js ]] || die "Build failed: main.js not found in repository root"
-echo "Build succeeded"
 
 # --- 6‑8. Commit, tag, and push -------------------------------------------
 git add .
