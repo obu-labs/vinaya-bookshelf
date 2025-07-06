@@ -73,7 +73,7 @@ class NuxModal extends Modal {
       const spinner = folder_row.createEl("td").createDiv({ cls: "loading-spinner" });
       this.download_folder(folder_name, spinner);
     }
-    second_page.createEl("p", { text: "The Vinaya Notebook Plugin will automatically update these folders, so don't make any changes to them. Your personal folder is not backed up to the cloud or shared with anyone, but you're welcome to do so yourself! Simply copy your notes folder (with the same name!) into someone else's Vinaya Notes vault." });
+    second_page.createEl("p", { text: "The Vinaya Notebook Plugin will automatically update these folders, so don't modify them. Place your notes in your own folder. To share your notes with others, simply send them a copy of your folder. That's it!" });
     second_page.createEl("p", { text: "For more information about how Vinaya Notebook works, see " }).createEl("a", { text: "the documentation.", href: "https://labs.buddhistuniversity.net/vinaya/docs" });
     
     new Setting(second_page).addButton((btn) =>

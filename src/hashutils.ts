@@ -7,9 +7,15 @@ export async function sha256(data: ArrayBufferLike): Promise<string> {
     .join('');
 }
 
-export async function hashForFileList(fileList: { path: string, hash: string }[]): Promise<string> {
+export async function hashForFileList(fileHashes: Map<string, string>): Promise<string> {
   // Sort by hash so it's order agnostic
-  fileList.sort((a, b) => a.hash.localeCompare(b.hash));
+  const fileList = Array.from(
+    fileHashes.entries()
+  ).map(
+    ([path, hash]) => ({ path, hash })
+  ).sort(
+    (a, b) => a.hash.localeCompare(b.hash)
+  );
   
   // Combine all paths and hashes into a single string
   let combinedData = '';
@@ -23,7 +29,7 @@ export async function hashForFileList(fileList: { path: string, hash: string }[]
 }
 
 export async function hashForFolder(folder: TFolder): Promise<string> {
-  const fileList: { path: string, hash: string }[] = [];
+  const fileHashes: Map<string, string> = new Map<string, string>();
   const folderList: TFolder[] = [];
   folderList.push(folder);
 
@@ -38,9 +44,9 @@ export async function hashForFolder(folder: TFolder): Promise<string> {
       } else {
         const content = await child.vault.adapter.readBinary(child.path);
         const hash = await sha256(content);
-        fileList.push({ path: child.path.substring(folder.path.length + 1), hash });
+        fileHashes.set(child.path.substring(folder.path.length + 1), hash);
       }
     }
   }
-  return await hashForFileList(fileList);
+  return await hashForFileList(fileHashes);
 }

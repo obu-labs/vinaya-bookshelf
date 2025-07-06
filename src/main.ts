@@ -57,7 +57,7 @@ export default class VinayaNotebookPlugin extends Plugin {
       if (!this.data.nuxShown) {
         await openNuxModelWhenReady(this);
       }
-    }, 500);
+    }, 1500);
   }
 
   onunload() {
