@@ -205,22 +205,23 @@ export class FolderUpdater extends BaseDatumUpdater {
       }
     }
 
-    new Notice(`Installing new "${this.folder_name}" folder...`);
+    const original_notice = new Notice(`Installing new "${this.folder_name}" folder...`, 0);
     const vnm_data = this.plugin.data.knownFolders[this.folder_name];
     try {
       const hash = await downloadZip(
         vnm_data.zip,
         this.folder_name,
         this.plugin.app,
+        original_notice
       );
       this.plugin.data.installedFolders[this.folder_name] = {
         version: vnm_data.version,
         hash: hash
       };
-      new Notice(`"${this.folder_name}" v${vnm_data.version} installed!`);
+      new Notice(`"${this.folder_name}" v${vnm_data.version} successfully installed!`);
     } catch (e) {
       console.error(e);
-      new Notice(`Failed to install "${this.folder_name}"!`);
+      new Notice(`!! Failed to install "${this.folder_name}"!`, 10000);
     }
     return true;
   }

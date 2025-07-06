@@ -7,12 +7,23 @@ import { hashForFileList, sha256 } from "./hashutils";
  * 
  * @returns an SHA256 hash of the inflated directory's contents
  */
-export async function downloadZip(url: string, targetFolder: string, app: App) {
+export async function downloadZip(url: string, targetFolder: string, app: App, notice?: Notice | null): Promise<string> {
+  if (!notice) {
+    notice = new Notice(`Downloading new ${targetFolder} folder...`, 0);
+  } else {
+    notice.setMessage(`Downloading new ${targetFolder} folder...`);
+  }
   const response = await requestUrl(url);
+  notice.hide();
+  notice = new Notice(`Unpacking "${targetFolder}.zip"...`, 0);
   const zip = await JSZip.loadAsync(response.arrayBuffer);
+  notice.hide()
+  notice = new Notice(`Installing new "${targetFolder}" folder...`, 0);
   const folder = app.vault.getFolderByPath(targetFolder);
   const fileHashes: Map<string, string> = new Map<string, string>();
   const foldersTouched: Set<string> = new Set<string>();
+  const totalCount = Object.keys(zip.files).length;
+  let fileCount = 0;
   for (const [path, file] of Object.entries(zip.files)) {
     const fullPath = `${targetFolder}/${path}`;
 
@@ -38,6 +49,8 @@ export async function downloadZip(url: string, targetFolder: string, app: App) {
         }
       }
 
+      fileCount += 1;
+      notice.setMessage(`Installing ${targetFolder} file ${fileCount}/${totalCount}...`);
       await app.vault.adapter.writeBinary(fullPath, content).catch(
         (err: Error) => {
           console.error(`Failed to create file ${fullPath}:`, err);
@@ -47,12 +60,17 @@ export async function downloadZip(url: string, targetFolder: string, app: App) {
       fileHashes.set(path, hash);
     }
   }
-  
+
+  notice.hide();
   if (folder) { // If !folder, it was created by the zip, so no pruning needed
-    await pruneFolder(app, folder, fileHashes.keys());
+    notice = new Notice(`Removing old files from "${targetFolder}"...`, 0);
+    await pruneFolder(app, folder, fileHashes.keys(), notice);
   }
 
-  return await hashForFileList(fileHashes);
+  notice = new Notice(`Saving "${targetFolder}" module...`, 0);
+  const ret = await hashForFileList(fileHashes);
+  notice.hide();
+  return ret;
 }
 
 /**
@@ -60,7 +78,7 @@ export async function downloadZip(url: string, targetFolder: string, app: App) {
  * 
  * @param filesToKeep files within `folder` (either relative or absolute paths)
  */
-export async function pruneFolder(app: App, folder: TFolder, filesToKeep: Iterable<string>): Promise<void> {
+export async function pruneFolder(app: App, folder: TFolder, filesToKeep: Iterable<string>, notice?: Notice): Promise<void> {
   const keepFiles = new Set<string>();
   for (const file of filesToKeep) {
     if (file.startsWith(folder.path + "/")) {
@@ -83,7 +101,6 @@ export async function pruneFolder(app: App, folder: TFolder, filesToKeep: Iterab
       if (!keep_any) {
         files_to_delete.push(node);
       }
-      console.log(`  ${node.path}: ${keep_any ? "keep" : "delete"}`);
       return { keep_any, files_to_delete, folders_to_delete: [] };
     }
 
@@ -106,10 +123,8 @@ export async function pruneFolder(app: App, folder: TFolder, filesToKeep: Iterab
     }
 
     if (keptChildren) {
-      console.log(`Within ${node.path} deleting ${files_to_delete.length} file(s) and ${folders_to_delete.length} folder(s) while keeping some`);
       return { keep_any: true, files_to_delete, folders_to_delete };
     } else {
-      console.log(`Deleting entire folder ${node.path} as there's nothing to save`);
       return { keep_any: false, files_to_delete: [], folders_to_delete: [node] };
     }
   }
@@ -125,9 +140,11 @@ export async function pruneFolder(app: App, folder: TFolder, filesToKeep: Iterab
   for (const folder of folders_to_delete) {
     promises.push(app.vault.delete(folder, true));
   }
+  notice?.hide();
   if (promises.length === 0) {
     return;
   }
-  new Notice(`Deleting ${files_to_delete.length} file(s) and ${folders_to_delete.length} folder(s)...`);
+  notice = new Notice(`Deleting ${files_to_delete.length} file(s) and ${folders_to_delete.length} folder(s) from "${folder.name}"...`, 0);
   await Promise.all(promises);
+  notice.hide();
 }
