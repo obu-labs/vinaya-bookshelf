@@ -133,7 +133,11 @@ export default class VinayaNotebookPlugin extends Plugin {
         downloadPromises.push(folder_updater.update());
       }
     }
-    await Promise.all(downloadPromises);
+    if (downloadPromises.length == 0) {
+      new Notice("No updates available");
+    } else {
+      await Promise.all(downloadPromises);
+    }
     this.settingsTab.setIsUpdating(false);
   }
 }

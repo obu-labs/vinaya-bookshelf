@@ -1,7 +1,7 @@
 {
 	"id": "vinaya-notebook",
 	"name": "Vinaya Notebook",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"minAppVersion": "0.15.0",
 	"description": "Coordinates the sharing of notes about the Vinaya.",
 	"author": "Khemarato Bhikkhu",
