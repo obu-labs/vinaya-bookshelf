@@ -1,4 +1,5 @@
-import { TFolder } from "obsidian";
+import { TFolder, TFile } from "obsidian";
+import { allFilesInFolder } from "./fileutils";
 
 export async function sha256(data: ArrayBufferLike): Promise<string> {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -7,7 +8,7 @@ export async function sha256(data: ArrayBufferLike): Promise<string> {
     .join('');
 }
 
-export async function hashForFileList(fileHashes: Map<string, string>): Promise<string> {
+export async function hashForFileHashes(fileHashes: Map<string, string>): Promise<string> {
   // Sort by hash so it's order agnostic
   const fileList = Array.from(
     fileHashes.entries()
@@ -28,25 +29,28 @@ export async function hashForFileList(fileHashes: Map<string, string>): Promise<
   return await sha256(combinedBuffer);
 }
 
-export async function hashForFolder(folder: TFolder): Promise<string> {
-  const fileHashes: Map<string, string> = new Map<string, string>();
-  const folderList: TFolder[] = [];
-  folderList.push(folder);
-
-  while (folderList.length > 0) {
-    const subfolder = folderList.shift();
-    if (!subfolder) {
-      continue;
-    }
-    for (const child of subfolder.children) {
-      if (child instanceof TFolder) {
-        folderList.push(child);
-      } else {
-        const content = await child.vault.adapter.readBinary(child.path);
+export async function hashForFiles(files: Iterable<TFile>, relativeTo?: TFolder): Promise<string> {
+  const filesAndHashes: { file: TFile, hash: string }[] = await Promise.all(
+    Array.from(files).map(
+      async (file) => {
+        const content = await file.vault.adapter.readBinary(file.path);
         const hash = await sha256(content);
-        fileHashes.set(child.path.substring(folder.path.length + 1), hash);
+        return { file, hash };
       }
+    )
+  );
+  const fileHashes: Map<string, string> = new Map<string, string>();
+  for (const { file, hash } of filesAndHashes) {
+    if (relativeTo) {
+      fileHashes.set(file.path.substring(relativeTo.path.length + 1), hash);
+    } else {
+      fileHashes.set(file.path, hash);
     }
   }
-  return await hashForFileList(fileHashes);
+  return await hashForFileHashes(fileHashes);
+}
+
+export async function hashForFolder(folder: TFolder): Promise<string> {
+  const files = allFilesInFolder(folder);
+  return await hashForFiles(files, folder);
 }

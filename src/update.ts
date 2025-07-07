@@ -1,7 +1,7 @@
 import { Notice, requestUrl } from "obsidian";
 import VinayaNotebookPlugin from "./main";
 import { hashForFolder } from "./hashutils";
-import { downloadZip } from "./fileutils";
+import downloadZip from "./downloadZip";
 import confirmationModal from "./confirmationmodal";
 
 const CANONICAL_VNM_LIST_URL = "https://labs.buddhistuniversity.net/vinaya/canonicalvnms.json";
