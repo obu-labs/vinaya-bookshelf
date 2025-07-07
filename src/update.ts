@@ -1,8 +1,9 @@
-import { Notice, requestUrl } from "obsidian";
+import { Notice, requestUrl, Platform } from "obsidian";
 import VinayaNotebookPlugin from "./main";
 import { hashForFolder } from "./hashutils";
 import downloadZip from "./downloadZip";
 import confirmationModal from "./confirmationmodal";
+import { statsForFolder } from "./fileutils";
 
 const CANONICAL_VNM_LIST_URL = "https://labs.buddhistuniversity.net/vinaya/canonicalvnms.json";
 
@@ -185,10 +186,19 @@ export class FolderUpdater extends BaseDatumUpdater {
     if (this.warn_about_overwrites && folder) {
       let needs_warning = true;
       if (this.is_installed()) {
-        const old_hash = this.plugin.data.installedFolders[this.folder_name].hash;
-        const cur_hash = await hashForFolder(folder);
-        if (cur_hash === old_hash) {
-          needs_warning = false;
+        const stats = statsForFolder(folder);
+        if (Platform.isDesktop || stats.length < 600) { // small folder, check the hash
+          const old_hash = this.plugin.data.installedFolders[this.folder_name].hash;
+          const cur_hash = await hashForFolder(folder);
+          if (cur_hash === old_hash) {
+            needs_warning = false;
+          }
+        } else { // large folder on mobile, just check the stat.mtime
+          const updatedtime = this.get_last_updated_time();
+          const modifiedtime = Math.max(...stats.map(stat => stat.mtime));
+          if (updatedtime + 3000 > modifiedtime) { // a little wiggle room for delayed writes
+            needs_warning = false;
+          }
         }
       }
       if (needs_warning) {

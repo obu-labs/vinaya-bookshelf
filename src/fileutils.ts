@@ -1,4 +1,4 @@
-import { App, requestUrl, TFile, TFolder, Notice, TAbstractFile } from "obsidian";
+import { App, requestUrl, TFile, TFolder, FileStats, Notice, TAbstractFile } from "obsidian";
 
 /**
  * Remove all files in `folder` except for those in `filesToKeep`.
@@ -84,4 +84,9 @@ export function* allFilesInFolder(folder: TFolder): Iterable<TFile> {
       yield* allFilesInFolder(child);
     }
   }
+}
+
+export function statsForFolder(folder: TFolder): Array<FileStats> {
+  const files = Array.from(allFilesInFolder(folder));
+  return files.map(file => file.stat);
 }
