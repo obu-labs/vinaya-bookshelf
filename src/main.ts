@@ -13,6 +13,7 @@ import {
   checkAppSettings,
 } from "./appsettings";
 import openNuxModelWhenReady from "./nux";
+import { VinayaNotebookSettingsTab } from "./pluginsettings";
 
 interface VNPluginData {
   canonicalVNMs: Record<FolderName, URLString>;
@@ -35,9 +36,13 @@ const DEFAULT_DATA: VNPluginData = {
 export default class VinayaNotebookPlugin extends Plugin {
   data: VNPluginData;
   settingsChecker: any;
+  settingsTab: VinayaNotebookSettingsTab;
 
   async onload() {
     this.data = Object.assign({}, DEFAULT_DATA, await this.loadData());
+
+    this.settingsTab = new VinayaNotebookSettingsTab(this);
+    this.addSettingTab(this.settingsTab);
 
     // Defer checks until everything is loaded
     setTimeout(async () => {
@@ -69,6 +74,7 @@ export default class VinayaNotebookPlugin extends Plugin {
   }
 
   async initiate_background_update() {
+    this.settingsTab.setIsUpdating(true);
     const root_updater = new VNMListUpdater(this);
     if (root_updater.needs_update()) {
       await root_updater.update();
@@ -99,5 +105,35 @@ export default class VinayaNotebookPlugin extends Plugin {
       }
     }
     await Promise.all(downloadPromises);
+    this.settingsTab.setIsUpdating(false);
+  }
+
+  last_updated_time(): number {
+    let ret = this.data.lastUpdatedTimes["VNMList"] || Infinity;
+    for (const folder_name in this.data.canonicalVNMs) {
+      ret = Math.min(ret, this.data.lastUpdatedTimes[folder_name+" VNM"] || Infinity);
+    }
+    return ret;
+  }
+
+  async force_update() {
+    this.settingsTab.setIsUpdating(true);
+    const root_updater = new VNMListUpdater(this);
+    await root_updater.update();
+    const updatePromises: Promise<void>[] = [];
+    for (const folder_name in this.data.canonicalVNMs) {
+      const vnm_updater = new VNMUpdater(this, folder_name);
+      updatePromises.push(vnm_updater.update());
+    }
+    await Promise.all(updatePromises);
+    const downloadPromises: Promise<void>[] = [];
+    for (const folder_name in this.data.canonicalVNMs) {
+      const folder_updater = new FolderUpdater(this, folder_name);
+      if (folder_updater.needs_update()) {
+        downloadPromises.push(folder_updater.update());
+      }
+    }
+    await Promise.all(downloadPromises);
+    this.settingsTab.setIsUpdating(false);
   }
 }
