@@ -1,4 +1,4 @@
-import { Notice, Plugin } from "obsidian";
+import { MarkdownView, Notice, Plugin, TFile } from "obsidian";
 
 import { 
   FolderName,
@@ -37,12 +37,18 @@ export default class VinayaNotebookPlugin extends Plugin {
   data: VNPluginData;
   settingsChecker: any;
   settingsTab: VinayaNotebookSettingsTab;
+  personalFolderName: FolderName;
 
   async onload() {
     this.data = Object.assign({}, DEFAULT_DATA, await this.loadData());
+    this.personalFolderName = "checkAppSettings will set this";
 
     this.settingsTab = new VinayaNotebookSettingsTab(this);
     this.addSettingTab(this.settingsTab);
+
+    this.registerEvent(
+      this.app.workspace.on("file-open", this.onFileOpen.bind(this))
+    );
 
     // Defer checks until everything is loaded
     setTimeout(async () => {
@@ -139,5 +145,52 @@ export default class VinayaNotebookPlugin extends Plugin {
       await Promise.all(downloadPromises);
     }
     this.settingsTab.setIsUpdating(false);
+  }
+
+  isSyncedFile(file: TFile): boolean {
+    for (const folder_name in this.data.installedFolders) {
+      if (file.path.startsWith(folder_name + "/")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  isPersonalFile(file: TFile): boolean {
+    if (file.path.startsWith(this.personalFolderName + "/")) {
+      return true;
+    }
+    return false;
+  }
+
+  onFileOpen(file: TFile | null) {
+    if (!file) return;
+    setTimeout(() => {
+      const activeLeaf = this.app.workspace.getLeaf(false);
+      const viewState = activeLeaf.getViewState();
+      if (!viewState.state) viewState.state = {}
+      const activeView = activeLeaf.view;
+      if (activeView instanceof MarkdownView) {
+        if (activeView.file !== file) return;
+      } else {
+        return;
+      }
+
+      if (this.isSyncedFile(file)) {
+        if (viewState.state.mode === "source") {
+          if (!viewState.state) viewState.state = {} 
+          viewState.state.mode = "preview";
+          activeLeaf.setViewState(viewState);
+        }
+      } else {
+        if (this.isPersonalFile(file)) {
+          if (viewState.state.mode === "preview") { 
+            viewState.state.mode = "source";
+            activeLeaf.setViewState(viewState);
+            activeView.editor.focus();
+          }
+        }
+      }
+    }, 50); // Seems a good balance between reliability and speed in testing
   }
 }

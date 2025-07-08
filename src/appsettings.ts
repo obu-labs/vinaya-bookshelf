@@ -53,6 +53,7 @@ export async function checkAppSettings(plugin: VinayaNotebookPlugin) {
     return;
   }
   let config = await get_app_settings(plugin.app);
+  plugin.personalFolderName = config["newFileFolderPath"];
   let changed_settings: Map<string, string> = new Map<string, string>();
   for (const key in ENFORCED_APP_SETTINGS) {
     if (config[key] !== ENFORCED_APP_SETTINGS[key]) {
