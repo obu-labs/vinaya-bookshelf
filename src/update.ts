@@ -15,7 +15,7 @@ export interface VNMMetadata {
   more_info: string; // Link to learn about this folder
   description?: string; // Description of the folder TODO make not optional?
   version: string; // Latest version in MAJOR.MINOR.PATCH format
-  requires: Record<string, string>; // Mapping of other folder to version
+  requires: Record<string, Record<string, any>>; // Mapping of other folder to its subfolders (recursive)
   zip: URLString; // URL of the zip containing the folder's contents
 }
 
