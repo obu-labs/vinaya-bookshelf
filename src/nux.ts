@@ -74,7 +74,7 @@ class NuxModal extends Modal {
       this.download_folder(folder_name, spinner);
     }
     second_page.createEl("p", { text: "The Vinaya Notebook Plugin will automatically update these folders, so don't modify them. Place your notes in your own folder. To share your notes with others, simply send them a copy of your folder. That's it!" });
-    second_page.createEl("p", { text: "For more information about how Vinaya Notebook works, see " }).createEl("a", { text: "the documentation.", href: "https://labs.buddhistuniversity.net/vinaya/docs" });
+    second_page.createEl("p", { text: "For more information about how Vinaya Notebook works, see " }).createEl("a", { text: "the documentation.", href: "https://labs.buddhistuniversity.net/vinaya/docs/guides" });
     
     new Setting(second_page).addButton((btn) =>
       btn
