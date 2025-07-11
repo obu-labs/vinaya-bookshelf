@@ -89,9 +89,14 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
           .setName(name)
           .addToggle((toggle) => {
             toggle
-              .setValue(true)
+              .setValue(!this.plugin.data.folderOptOuts.contains(name))
               .onChange((value) => {
-                console.log(`Setting ${name} to ${value}`);
+                if (value) {
+                  this.plugin.data.folderOptOuts.remove(name);
+                } else {
+                  this.plugin.data.folderOptOuts.push(name);
+                }
+                this.plugin.save();
               });
           });
         const descEl = setting.descEl.createDiv({ cls: "module-settings-desc" });

@@ -173,10 +173,14 @@ export class FolderUpdater extends BaseDatumUpdater {
     return true; // If we aren't warning, consider their dismissal expired
   }
 
+  subscribed(): boolean {
+    return !this.plugin.data.folderOptOuts.contains(this.folder_name);
+  }
+
   needs_update(): boolean {
     // slightly different logic here because
     // the expiry is a retry timeout not a frequency
-    return this.data_is_incomplete() && this.is_expired();
+    return this.data_is_incomplete() && this.is_expired() && this.subscribed();
   }
 
   async perform_update(): Promise<boolean> {
