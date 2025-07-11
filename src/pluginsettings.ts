@@ -1,5 +1,6 @@
 import { Notice, PluginSettingTab, Setting } from "obsidian";
 import VinayaNotebookPlugin from "./main";
+import { FolderName, FolderUpdater } from "./update";
 import * as dayjs from "dayjs";
 import * as relativeTime from "dayjs/plugin/relativeTime";
 
@@ -73,6 +74,37 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
             this.plugin.force_update();
           });
         }
-      })
+      });
+    
+    new Setting(containerEl).setHeading().setName("Module Subscriptions")
+      .setDesc("Toggle any module off to stop receiving updates for it.");
+    
+    const feedSection = containerEl.createDiv({ cls: "module-settings-section" });    
+    // feedSection.createEl("h3", { text: "Manage Module Subscriptions" });
+    Object.entries(this.plugin.data.knownFolders)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .forEach(([name, vnmdata]) => {
+        const moduleEl = feedSection.createDiv({ cls: "module-settings" });
+        const updater = new FolderUpdater(this.plugin, name);
+        const setting = new Setting(moduleEl)
+          .setName(name)
+          .addToggle((toggle) => {
+            toggle
+              .setValue(updater.subscribed())
+              .onChange((value) => {
+                if (value) {
+                  updater.subscribe();
+                } else {
+                  updater.unsubscribe();
+                }
+              });
+          });
+        const descEl = setting.descEl.createDiv({ cls: "module-settings-desc" });
+        const metaEl = descEl.createEl("p", { text: `Version: ${vnmdata.version} • ` });
+        if (vnmdata.more_info.startsWith("http")) {
+          metaEl.createEl("a", { text: "Source", href: vnmdata.more_info });
+        }
+        descEl.createEl("p", { text: vnmdata.description });
+      });
   }
 }

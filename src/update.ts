@@ -1,9 +1,10 @@
-import { Notice, requestUrl, Platform } from "obsidian";
+import { Notice, requestUrl, Platform, normalizePath } from "obsidian";
 import VinayaNotebookPlugin from "./main";
 import { hashForFolder } from "./hashutils";
 import downloadZip from "./downloadZip";
 import confirmationModal from "./confirmationmodal";
 import { statsForFolder } from "./fileutils";
+import { normalize } from "path";
 
 const CANONICAL_VNM_LIST_URL = "https://labs.buddhistuniversity.net/vinaya/canonicalvnms.json";
 
@@ -133,6 +134,8 @@ export class VNMUpdater extends BaseDatumUpdater {
       console.error(e);
       return false;
     }
+    // In case the user is looking at the version info in the settings tab
+    this.plugin.settingsTab.refreshDisplay();
     return true;
   }
 }
@@ -173,10 +176,42 @@ export class FolderUpdater extends BaseDatumUpdater {
     return true; // If we aren't warning, consider their dismissal expired
   }
 
+  async subscribe() {
+    this.plugin.data.folderOptOuts.remove(this.folder_name);
+    await this.perform_update();
+    await this.plugin.save();
+  }
+
+  async unsubscribe() {
+    this.plugin.data.folderOptOuts.push(this.folder_name);
+    if (this.is_installed()) {
+      delete this.plugin.data.installedFolders[this.folder_name];
+    }
+    const folder = this.plugin.app.vault.getFolderByPath(normalizePath(this.folder_name));
+    if (folder) {
+      const user_wants_it_gone = await confirmationModal(
+        "You are unsubscribed!",
+        "Vinaya Notebook will no longer download updates for this module. Would you also like to delete the folder?",
+        this.plugin.app,
+        `Delete the "${folder.name}" folder now`,
+        "Keep the folder",
+      );
+      if (user_wants_it_gone) {
+        await this.plugin.app.fileManager.trashFile(folder);
+        new Notice(`The "${folder.name}" folder has been trashed.`);
+      }
+    }
+    await this.plugin.save();
+  }
+
+  subscribed(): boolean {
+    return !this.plugin.data.folderOptOuts.contains(this.folder_name);
+  }
+
   needs_update(): boolean {
     // slightly different logic here because
     // the expiry is a retry timeout not a frequency
-    return this.data_is_incomplete() && this.is_expired();
+    return this.data_is_incomplete() && this.is_expired() && this.subscribed();
   }
 
   async perform_update(): Promise<boolean> {
@@ -204,7 +239,7 @@ export class FolderUpdater extends BaseDatumUpdater {
       if (needs_warning) {
         const user_confirmed = await confirmationModal(
           `Update the "${this.folder_name}" folder?`,
-          `The "${this.folder_name}" folder has a new version available, but the version you currently have has been modified. If you proceed to install the new version, those changes will be lost.`,
+          `The "${this.folder_name}" folder has a new version available, but the version you currently have may have been modified. If you install the new version, any changes you've made will be lost.`,
           this.plugin.app,
           "Overwite Changes",
           "Ask me again tomorrow",

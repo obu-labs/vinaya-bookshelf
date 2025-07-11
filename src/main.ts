@@ -22,6 +22,7 @@ interface VNPluginData {
   installedFolders: Record<FolderName, InstalledFolderRecord>;
   disabledSettingsCheck: number; // TODO Add a toggle in the settings panel
   nuxShown: number;
+  folderOptOuts: Array<FolderName>;
 }
 
 const DEFAULT_DATA: VNPluginData = {
@@ -31,6 +32,7 @@ const DEFAULT_DATA: VNPluginData = {
   installedFolders: {},
   disabledSettingsCheck: 0,
   nuxShown: 0,
+  folderOptOuts: [],
 };
 
 export default class VinayaNotebookPlugin extends Plugin {
