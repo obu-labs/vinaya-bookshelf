@@ -67,3 +67,12 @@
   color: var(--background-modifier-success);
   text-align: center;
 }
+
+.module-settings-section {
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.module-settings-desc p {
+  margin-top: -3px;
+  margin-bottom: 5px;
+}
