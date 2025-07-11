@@ -1,6 +1,6 @@
 import { Notice, PluginSettingTab, Setting } from "obsidian";
 import VinayaNotebookPlugin from "./main";
-import { FolderName } from "./update";
+import { FolderName, FolderUpdater } from "./update";
 import * as dayjs from "dayjs";
 import * as relativeTime from "dayjs/plugin/relativeTime";
 
@@ -85,18 +85,18 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
       .sort((a, b) => a[0].localeCompare(b[0]))
       .forEach(([name, vnmdata]) => {
         const moduleEl = feedSection.createDiv({ cls: "module-settings" });
+        const updater = new FolderUpdater(this.plugin, name);
         const setting = new Setting(moduleEl)
           .setName(name)
           .addToggle((toggle) => {
             toggle
-              .setValue(!this.plugin.data.folderOptOuts.contains(name))
+              .setValue(updater.subscribed())
               .onChange((value) => {
                 if (value) {
-                  this.plugin.data.folderOptOuts.remove(name);
+                  updater.subscribe();
                 } else {
-                  this.plugin.data.folderOptOuts.push(name);
+                  updater.unsubscribe();
                 }
-                this.plugin.save();
               });
           });
         const descEl = setting.descEl.createDiv({ cls: "module-settings-desc" });

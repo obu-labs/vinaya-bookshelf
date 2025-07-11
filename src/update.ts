@@ -173,6 +173,16 @@ export class FolderUpdater extends BaseDatumUpdater {
     return true; // If we aren't warning, consider their dismissal expired
   }
 
+  async subscribe() {
+    this.plugin.data.folderOptOuts.remove(this.folder_name);
+    await this.plugin.save();
+  }
+
+  async unsubscribe() {
+    this.plugin.data.folderOptOuts.push(this.folder_name);
+    await this.plugin.save();
+  }
+
   subscribed(): boolean {
     return !this.plugin.data.folderOptOuts.contains(this.folder_name);
   }
