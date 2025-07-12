@@ -7,6 +7,11 @@ set -euo pipefail
 die() { echo "❌ $1" >&2; exit 1; }
 
 # --- 0. Make sure the build works -----------------------------------------
+if pgrep -f "npm run dev" > /dev/null; then
+  echo "Error: 'npm run dev' is still running. Close it and retry."
+  exit 1
+fi
+
 rm -f main.js
 npm run build
 [[ -f main.js ]] || die "Build failed: please fix and try again"
