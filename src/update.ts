@@ -14,7 +14,7 @@ export type URLString = string;
 export interface VNMMetadata {
   folder: FolderName; // The folder name as realized
   more_info: string; // Link to learn about this folder
-  description?: string; // Description of the folder TODO make not optional?
+  description: string; // Description of the folder
   version: string; // Latest version in MAJOR.MINOR.PATCH format
   requires: Record<string, Record<string, any>>; // Mapping of other folder to its subfolders (recursive)
   zip: URLString; // URL of the zip containing the folder's contents
@@ -183,10 +183,11 @@ export class FolderUpdater extends BaseDatumUpdater {
   }
 
   async unsubscribe() {
-    this.plugin.data.folderOptOuts.push(this.folder_name);
-    if (this.is_installed()) {
-      delete this.plugin.data.installedFolders[this.folder_name];
+    if (!this.plugin.data.folderOptOuts.contains(this.folder_name)) {
+      this.plugin.data.folderOptOuts.push(this.folder_name);
+      await this.plugin.save();
     }
+
     const folder = this.plugin.app.vault.getFolderByPath(normalizePath(this.folder_name));
     if (folder) {
       const user_wants_it_gone = await confirmationModal(
@@ -198,10 +199,24 @@ export class FolderUpdater extends BaseDatumUpdater {
       );
       if (user_wants_it_gone) {
         await this.plugin.app.fileManager.trashFile(folder);
+        if (this.is_installed()) {
+          delete this.plugin.data.installedFolders[this.folder_name];
+          await this.plugin.save();
+        }
         new Notice(`The "${folder.name}" folder has been trashed.`);
+      } else {
+        new Notice(`Will keep "${folder.name}" but will no longer keep it up-to-date.`);
       }
+    } else {
+      // The folder doesn't exist, but still double check that
+      // we've cleared the installation metadata.
+      // This can happen if the user deleted the folder manually in the OS.
+      if (this.is_installed()) {
+        delete this.plugin.data.installedFolders[this.folder_name];
+        await this.plugin.save();
+      }
+      new Notice(`Unsubscribed from "${this.folder_name}".`);
     }
-    await this.plugin.save();
   }
 
   subscribed(): boolean {

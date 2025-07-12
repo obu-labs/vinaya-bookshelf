@@ -14,6 +14,7 @@ import {
 } from "./appsettings";
 import openNuxModelWhenReady from "./nux";
 import { VinayaNotebookSettingsTab } from "./pluginsettings";
+import NewModuleModal from "./newmodulemodal";
 
 interface VNPluginData {
   canonicalVNMs: Record<FolderName, URLString>;
@@ -108,8 +109,27 @@ export default class VinayaNotebookPlugin extends Plugin {
     const downloadPromises: Promise<void>[] = [];
     for (const folder_name in this.data.canonicalVNMs) {
       const folder_updater = new FolderUpdater(this, folder_name);
-      if (folder_updater.needs_update()) {
-        downloadPromises.push(folder_updater.update());
+      const folder = this.app.vault.getFolderByPath(folder_name);
+      if (folder) {
+        if (folder_updater.needs_update()) {
+          downloadPromises.push(folder_updater.update());
+        }
+      } else { // If the folder doesn't exist
+        if (folder_updater.is_installed()) {
+          if (folder_updater.subscribed()) {
+            // ... but was installed, this means someone deleted the folder
+            // out from under us. So, offer to reinstall it (or unsubscribe)
+            new NewModuleModal(this, folder_updater).open();
+          } else {
+            delete this.data.installedFolders[folder_name];
+            await this.save();
+          }
+        } else { // Was not installed
+          if (folder_updater.subscribed()) {
+            // This genuinely is a new folder?
+            new NewModuleModal(this, folder_updater).open();
+          }
+        }
       }
     }
     await Promise.all(downloadPromises);
@@ -165,6 +185,8 @@ export default class VinayaNotebookPlugin extends Plugin {
     return false;
   }
 
+  // Make sure that Synced files are always opened in preview mode
+  // And make sure to switch back to editor mode for personal files
   onFileOpen(file: TFile | null) {
     if (!file) return;
     setTimeout(() => {
