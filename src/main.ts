@@ -106,7 +106,13 @@ export default class VinayaNotebookPlugin extends Plugin {
       await checkAppSettings(this);
     }
 
+    await this.update_folders();
+    this.settingsTab.setIsUpdating(false);
+  }
+
+  async update_folders(): Promise<boolean> {
     const downloadPromises: Promise<void>[] = [];
+    let did_open_model = false;
     for (const folder_name in this.data.canonicalVNMs) {
       const folder_updater = new FolderUpdater(this, folder_name);
       const folder = this.app.vault.getFolderByPath(folder_name);
@@ -120,6 +126,7 @@ export default class VinayaNotebookPlugin extends Plugin {
             // ... but was installed, this means someone deleted the folder
             // out from under us. So, offer to reinstall it (or unsubscribe)
             new NewModuleModal(this, folder_updater).open();
+            did_open_model = true;
           } else {
             delete this.data.installedFolders[folder_name];
             await this.save();
@@ -128,12 +135,13 @@ export default class VinayaNotebookPlugin extends Plugin {
           if (folder_updater.subscribed()) {
             // This genuinely is a new folder?
             new NewModuleModal(this, folder_updater).open();
+            did_open_model = true;
           }
         }
       }
     }
     await Promise.all(downloadPromises);
-    this.settingsTab.setIsUpdating(false);
+    return downloadPromises.length > 0 || did_open_model;
   }
 
   last_updated_time(): number {
@@ -154,17 +162,9 @@ export default class VinayaNotebookPlugin extends Plugin {
       updatePromises.push(vnm_updater.update());
     }
     await Promise.all(updatePromises);
-    const downloadPromises: Promise<void>[] = [];
-    for (const folder_name in this.data.canonicalVNMs) {
-      const folder_updater = new FolderUpdater(this, folder_name);
-      if (folder_updater.needs_update()) {
-        downloadPromises.push(folder_updater.update());
-      }
-    }
-    if (downloadPromises.length == 0) {
-      new Notice("No updates available");
-    } else {
-      await Promise.all(downloadPromises);
+    const did_update = await this.update_folders();
+    if (!did_update) {
+      new Notice("No updates available.");
     }
     this.settingsTab.setIsUpdating(false);
   }
