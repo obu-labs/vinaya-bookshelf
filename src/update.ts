@@ -4,20 +4,48 @@ import { hashForFolder } from "./hashutils";
 import downloadZip from "./downloadZip";
 import confirmationModal from "./confirmationmodal";
 import { statsForFolder } from "./fileutils";
-import { normalize } from "path";
 
 const CANONICAL_VNM_LIST_URL = "https://labs.buddhistuniversity.net/vinaya/canonicalvnms.json";
 
 export type FolderName = string;
 export type URLString = string;
 
-export interface VNMMetadata {
-  folder: FolderName; // The folder name as realized
-  more_info: string; // Link to learn about this folder
-  description: string; // Description of the folder
-  version: string; // Latest version in MAJOR.MINOR.PATCH format
-  requires: Record<string, Record<string, any>>; // Mapping of other folder to its subfolders (recursive)
-  zip: URLString; // URL of the zip containing the folder's contents
+const VNMMetadataShape = {
+  folder: 'string', // The folder name as realized
+  more_info: 'string', // Link to learn about this folder
+  description: 'string', // Description of the folder
+  version: 'string', // Latest version in MAJOR.MINOR.PATCH format
+  requires: 'object', // Mapping of other folder to its subfolders (recursive)
+  zip: 'string', // URL of the zip containing the folder's contents
+} as const;
+
+export type VNMMetadata = {
+  [K in keyof typeof VNMMetadataShape]:
+    typeof VNMMetadataShape[K] extends 'string' ? string :
+    typeof VNMMetadataShape[K] extends 'object' ? Record<string, Record<string, any>> :
+    never
+};
+
+function assert(truth: any, message?: string): void {
+  if (!truth) {
+    throw new Error("Assertion failed" + (message ? ": " + message : ""));
+  }
+}
+
+/**
+ * 
+ * @param url The URL of the VNM manifest file to download
+ * @throw Error if the URL is bad or returns data in the wrong form
+ * @returns The VNM metadata
+ */
+export async function fetch_vnm(url: string): Promise<VNMMetadata> {
+  const response = await requestUrl(url);
+  const metadata: any = response.json;
+  assert(typeof metadata === "object", "VNMs are JSON objects");
+  for (const [key, value] of Object.entries(VNMMetadataShape)) {
+    assert(typeof metadata[key] === value, `${key} must be a(n) ${value}`);
+  }
+  return metadata;
 }
 
 export interface InstalledFolderRecord {
@@ -127,8 +155,7 @@ export class VNMUpdater extends BaseDatumUpdater {
   async perform_update(): Promise<boolean> {
     const vnm_url = this.plugin.data.canonicalVNMs[this.folder_name];
     try {
-      const response = await requestUrl(vnm_url);
-      const metadata: VNMMetadata = response.json;
+      const metadata: VNMMetadata = await fetch_vnm(vnm_url);
       this.plugin.data.knownFolders[this.folder_name] = metadata;
     } catch (e) {
       console.error(e);
