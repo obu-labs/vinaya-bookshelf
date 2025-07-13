@@ -209,14 +209,14 @@ export class FolderUpdater extends BaseDatumUpdater {
     await this.plugin.save();
   }
 
-  async unsubscribe() {
+  async unsubscribe(silently?: boolean) {
     if (!this.plugin.data.folderOptOuts.contains(this.folder_name)) {
       this.plugin.data.folderOptOuts.push(this.folder_name);
       await this.plugin.save();
     }
 
     const folder = this.plugin.app.vault.getFolderByPath(normalizePath(this.folder_name));
-    if (folder) {
+    if (folder && !silently) {
       const user_wants_it_gone = await confirmationModal(
         "You are unsubscribed!",
         "Vinaya Notebook will no longer download updates for this module. Would you also like to delete the folder?",
@@ -242,7 +242,9 @@ export class FolderUpdater extends BaseDatumUpdater {
         delete this.plugin.data.installedFolders[this.folder_name];
         await this.plugin.save();
       }
-      new Notice(`Unsubscribed from "${this.folder_name}".`);
+      if (!silently) {
+        new Notice(`Unsubscribed from "${this.folder_name}".`);
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-import { MarkdownView, Notice, Plugin, TFile } from "obsidian";
+import { MarkdownView, Notice, Plugin, TAbstractFile, TFile } from "obsidian";
 
 import { 
   FolderName,
@@ -51,6 +51,10 @@ export default class VinayaNotebookPlugin extends Plugin {
 
     this.registerEvent(
       this.app.workspace.on("file-open", this.onFileOpen.bind(this))
+    );
+
+    this.registerEvent(
+      this.app.vault.on("delete", this.onDelete.bind(this))
     );
 
     // Defer checks until everything is loaded
@@ -183,6 +187,16 @@ export default class VinayaNotebookPlugin extends Plugin {
       return true;
     }
     return false;
+  }
+
+  onDelete(file: TAbstractFile) {
+    if (file instanceof TFile) {
+      return;
+    }
+    if (this.data.installedFolders[file.path]) {
+      const folder_updater = new FolderUpdater(this, file.path);
+      folder_updater.unsubscribe(true);
+    }
   }
 
   // Make sure that Synced files are always opened in preview mode
