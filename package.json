@@ -4,9 +4,9 @@
   "description": "Coordinates the sharing of notes about the Vinaya.",
   "main": "main.js",
   "scripts": {
-    "watch:css": "postcss src/root.css -o styles.css --watch",
+    "watch:css": "postcss src/main.css -o styles.css --watch",
     "dev": "concurrently \"node esbuild.config.mjs\" \"npm run watch:css\"",
-    "build:css": "NODE_ENV=production postcss src/root.css -o styles.css",
+    "build:css": "NODE_ENV=production postcss src/main.css -o styles.css",
     "build": "npm run build:css && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
