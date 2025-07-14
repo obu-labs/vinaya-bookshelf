@@ -1,4 +1,8 @@
 @import 'tippy.js/dist/tippy.css';
+@import './confirmationmodal.css';
+@import './nux.css';
+@import './pluginsettings.css';
+@import './newmodulemodal.css';
 
 .hidden {
   display: none !important;
@@ -27,97 +31,6 @@
   }
 }
 
-/* basic reset & look */
-.nux-modal-page table {
-  width: 100%;          /* stretch across the container            */
-  border-collapse: collapse;
-}
-
-.nux-modal-page th,td {
-  padding: 0.5rem;
-  border: 1px solid var(--text-normal);
-  word-wrap: break-word; /* let long words wrap instead of overflow */
-}
-
-.modal-button-container .danger-button {
-  background-color: #d9534f;
-  color: white;
-}
-.modal-button-container .danger-button:hover {
-  background-color: #c9302c;
-}
-
-.nux-modal .nux-modal-header{
-  text-align: center;
-}
-.nux-modal-header .nux-modal-title {
-  margin: 7px auto 0.15em;
-}
-.nux-modal-header .nux-modal-subtitle {
-  margin: 0 auto 1em;
-}
-.nux-modal-header p {
-  text-wrap-style: balance;
-}
-
-.nux-modal-page .folder-name {
-  font-weight: bold;
-  font-size: 107%;
-}
-
-.nux-modal-page .success {
-  color: var(--background-modifier-success);
-  text-align: center;
-}
-
-.module-settings-section {
-  border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.module-settings-desc p {
-  margin-top: -3px;
-  margin-bottom: 5px;
-}
-
-.module-settings input[type="text"] {
-  width: 100%;
-}
-
 .tippy-box[data-theme~='error'] {
   color: var(--text-error);
-}
-
-.new-module-modal .folder-info {
-  background-color: var(--background-secondary-alt);
-  padding: 1rem;
-  margin: 1rem;
-}
-
-.new-module-modal .folder-info h5 {
-  margin-top: 0;
-}
-
-.new-module-modal .folder-info h5 a {
-  margin-left: 1em;
-}
-
-.new-module-modal .folder-info p {
-  margin-bottom: 0.5em;
-}
-
-.new-module-modal div.button-container {
-  display: flex;
-  place-content: space-around;
-}
-
-.new-module-modal div.button-container button {
-  height: unset;
-  min-height: var(--input-height);
-  white-space: normal;
-  margin-left: 4px;
-  margin-right: 4px;
-}
-
-.new-module-modal button.close-button {
-  float: right;
 }

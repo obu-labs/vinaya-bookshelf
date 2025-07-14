@@ -1,0 +1,34 @@
+/* basic reset & look */
+.nux-modal-page table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.nux-modal-page th,td {
+  padding: 0.5rem;
+  border: 1px solid var(--text-normal);
+  word-wrap: break-word;
+}
+
+.nux-modal .nux-modal-header{
+  text-align: center;
+}
+.nux-modal-header .nux-modal-title {
+  margin: 7px auto 0.15em;
+}
+.nux-modal-header .nux-modal-subtitle {
+  margin: 0 auto 1em;
+}
+.nux-modal-header p {
+  text-wrap-style: balance;
+}
+
+.nux-modal-page .folder-name {
+  font-weight: bold;
+  font-size: 107%;
+}
+
+.nux-modal-page .success {
+  color: var(--background-modifier-success);
+  text-align: center;
+}
