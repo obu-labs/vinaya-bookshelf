@@ -1,6 +1,6 @@
 {
   "name": "vinaya-notebook",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "Coordinates the sharing of notes about the Vinaya.",
   "main": "main.js",
   "scripts": {
