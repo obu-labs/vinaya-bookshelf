@@ -100,8 +100,12 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
               });
           });
         const descEl = setting.descEl.createDiv({ cls: "module-settings-desc" });
-        const metaEl = descEl.createEl("p", { text: `Version: ${vnmdata.version} • ` });
+        const metaEl = descEl.createEl("p", { text: `Version: ${vnmdata.version}` });
+        if (this.plugin.data.installedFolders[name] && vnmdata.version !== this.plugin.data.installedFolders[name].version) {
+          metaEl.createSpan({ text: ` (Installed: ${this.plugin.data.installedFolders[name].version})` });
+        }
         if (vnmdata.more_info.startsWith("http")) {
+          metaEl.createSpan({ text: " • " });
           metaEl.createEl("a", { text: "Source", href: vnmdata.more_info });
         }
         descEl.createEl("p", { text: vnmdata.description });

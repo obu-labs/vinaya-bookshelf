@@ -111,6 +111,8 @@ class BaseDatumUpdater {
 
   async register_update() {
     this.plugin.data.lastUpdatedTimes[this.get_id()] = Date.now();
+    // In case the user is looking at the version info in the settings tab
+    this.plugin.settingsTab.refreshDisplay();
     await this.plugin.save();
   }
 }
@@ -161,8 +163,6 @@ export class VNMUpdater extends BaseDatumUpdater {
       console.error(e);
       return false;
     }
-    // In case the user is looking at the version info in the settings tab
-    this.plugin.settingsTab.refreshDisplay();
     return true;
   }
 }
@@ -173,15 +173,19 @@ export class FolderUpdater extends BaseDatumUpdater {
   constructor(plugin: VinayaNotebookPlugin, folder_name: string) {
     super(plugin);
     this.folder_name = folder_name;
+    // If the user of class really knows what they're doing,
+    // they can reach in and set this to false.
     this.warn_about_overwrites = true;
   }
 
   check_how_often(): number {
-    return 1; // We already know we're on the old version
+    return 0; // We already know we're on the old version
   }
 
   get_id(): string {
+    // The timestamp of the Folder install.
     return (this.folder_name + " Folder");
+    // The timestamp of the "ask me later" is this + " Punted"
   }
 
   is_installed(): boolean {
@@ -189,6 +193,9 @@ export class FolderUpdater extends BaseDatumUpdater {
   }
 
   is_at_latest_version(): boolean {
+    if (!this.is_installed()) {
+      return false;
+    }
     return this.plugin.data.installedFolders[this.folder_name].version === this.plugin.data.knownFolders[this.folder_name].version;
   }
 
@@ -198,9 +205,12 @@ export class FolderUpdater extends BaseDatumUpdater {
 
   is_expired(): boolean {
     if (this.warn_about_overwrites) {
-      return super.is_expired();
+      const puntedTime = this.plugin.data.lastUpdatedTimes[this.get_id() + " Punted"];
+      if (puntedTime) {
+        return Date.now() > puntedTime + (24 * 60 * 60 * 1000);
+      }
     }
-    return true; // If we aren't warning, consider their dismissal expired
+    return true;
   }
 
   async subscribe() {
@@ -253,14 +263,11 @@ export class FolderUpdater extends BaseDatumUpdater {
   }
 
   needs_update(): boolean {
-    // slightly different logic here because
-    // the expiry is a retry timeout not a frequency
+    // Note that expiry here is a retry timeout not a frequency
     return this.data_is_incomplete() && this.is_expired() && this.subscribed();
   }
 
   async perform_update(): Promise<boolean> {
-    // We return true here even if it fails
-    // because we always want to record the time of our attempt
     const folder = this.plugin.app.vault.getFolderByPath(this.folder_name);
     if (this.warn_about_overwrites && folder) {
       let needs_warning = true;
@@ -289,7 +296,9 @@ export class FolderUpdater extends BaseDatumUpdater {
           "Ask me again tomorrow",
         )
         if (!user_confirmed) {
-          return true; // save the timestamp of this refusal
+          this.plugin.data.lastUpdatedTimes[this.get_id() + " Punted"] = Date.now();
+          await this.plugin.save();
+          return false; // didn't succeed
         }
       }
     }
