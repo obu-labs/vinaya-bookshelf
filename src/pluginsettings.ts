@@ -4,6 +4,7 @@ import { FolderName, FolderUpdater } from "./update";
 import * as dayjs from "dayjs";
 import * as relativeTime from "dayjs/plugin/relativeTime";
 import { isUrl } from "./helpers";
+import tippy from 'tippy.js';
 
 dayjs.extend((relativeTime as any).default || relativeTime);
 
@@ -139,11 +140,23 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
             this.custom_url_button.disabled = true;
             this.custom_url_button.setText("");
             this.custom_url_button.addClass("loading-spinner");
-            await sleep(2000);
+            await sleep(200);
             console.log(this.custom_url_input.value);
             this.custom_url_input.style.color = "var(--text-error)";
             this.custom_url_button.removeClass("loading-spinner");
             this.custom_url_button.setText("❌");
+            const tip = tippy(this.custom_url_input, {
+              content: "Invalid URL",
+              placement: "top",
+              trigger: "manual",
+              animation: "scale-subtle",
+              hideOnClick: true,
+              theme: 'error',
+            });
+            tip.show();
+            setTimeout(() => {
+              tip?.destroy();
+            }, 2500);
           });
         this.custom_url_button = btn.buttonEl;
       });

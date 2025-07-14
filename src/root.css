@@ -1,3 +1,5 @@
+@import 'tippy.js/dist/tippy.css';
+
 .hidden {
   display: none !important;
 }
@@ -81,6 +83,10 @@
   width: 100%;
 }
 
+.tippy-box[data-theme~='error'] {
+  color: var(--text-error);
+}
+
 .new-module-modal .folder-info {
   background-color: var(--background-secondary-alt);
   padding: 1rem;
@@ -115,4 +121,3 @@
 .new-module-modal button.close-button {
   float: right;
 }
-
