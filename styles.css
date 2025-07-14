@@ -77,6 +77,10 @@
   margin-bottom: 5px;
 }
 
+.module-settings input[type="text"] {
+  width: 100%;
+}
+
 .new-module-modal .folder-info {
   background-color: var(--background-secondary-alt);
   padding: 1rem;

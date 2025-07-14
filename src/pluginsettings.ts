@@ -3,6 +3,7 @@ import VinayaNotebookPlugin from "./main";
 import { FolderName, FolderUpdater } from "./update";
 import * as dayjs from "dayjs";
 import * as relativeTime from "dayjs/plugin/relativeTime";
+import { isUrl } from "./helpers";
 
 dayjs.extend((relativeTime as any).default || relativeTime);
 
@@ -10,6 +11,8 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
   plugin: VinayaNotebookPlugin;
   is_updating: boolean;
   is_foregrounded: boolean;
+  custom_url_input: HTMLInputElement;
+  custom_url_button: HTMLButtonElement;
 
   constructor(plugin: VinayaNotebookPlugin) {
     super(plugin.app, plugin);
@@ -109,6 +112,40 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
           metaEl.createEl("a", { text: "Source", href: vnmdata.more_info });
         }
         descEl.createEl("p", { text: vnmdata.description });
+      });
+    const addModuleEl = feedSection.createDiv({ cls: "module-settings" });
+    const setting = new Setting(addModuleEl)
+      .setName("Add Module")
+      .setDesc("Add a new module by URL.")
+      .addText((text) => {
+        text
+          .setPlaceholder("https://example.com/manifest.vnm")
+          .onChange((value) => {
+            if (isUrl(value)) {
+              this.custom_url_button.setText("+");
+              this.custom_url_button.disabled = false;
+              this.custom_url_input.style.color = "var(--text-normal)";
+            } else {
+              this.custom_url_button.disabled = true;
+              this.custom_url_input.style.color = "var(--text-warning)";
+            }
+          });
+        this.custom_url_input = text.inputEl;
+      })
+      .addButton((btn) => {
+        btn
+          .setButtonText('+')
+          .onClick(async () => {
+            this.custom_url_button.disabled = true;
+            this.custom_url_button.setText("");
+            this.custom_url_button.addClass("loading-spinner");
+            await sleep(2000);
+            console.log(this.custom_url_input.value);
+            this.custom_url_input.style.color = "var(--text-error)";
+            this.custom_url_button.removeClass("loading-spinner");
+            this.custom_url_button.setText("❌");
+          });
+        this.custom_url_button = btn.buttonEl;
       });
   }
 }
