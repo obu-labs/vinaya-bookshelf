@@ -57,6 +57,12 @@ export default class VinayaNotebookPlugin extends Plugin {
       this.app.vault.on("delete", this.onDelete.bind(this))
     );
 
+    this.addCommand({
+      id: "force-update",
+      name: "Update modules now",
+      callback: this.force_update.bind(this),
+    });
+
     // Defer checks until everything is loaded
     setTimeout(async () => {
       if (!this.data.nuxShown) {
@@ -157,6 +163,7 @@ export default class VinayaNotebookPlugin extends Plugin {
   }
 
   async force_update() {
+    const original_notice = new Notice("Checking for updates...");
     this.settingsTab.setIsUpdating(true);
     const root_updater = new VNMListUpdater(this);
     await root_updater.update();
@@ -168,6 +175,7 @@ export default class VinayaNotebookPlugin extends Plugin {
     await Promise.all(updatePromises);
     const did_update = await this.update_folders();
     if (!did_update) {
+      original_notice.hide();
       new Notice("No updates available.");
     }
     this.settingsTab.setIsUpdating(false);
