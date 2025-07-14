@@ -4,6 +4,7 @@ import { hashForFolder } from "./hashutils";
 import downloadZip from "./downloadZip";
 import confirmationModal from "./confirmationmodal";
 import { statsForFolder } from "./fileutils";
+import { assert, getKeyWithValue } from "./helpers";
 
 const CANONICAL_VNM_LIST_URL = "https://labs.buddhistuniversity.net/vinaya/canonicalvnms.json";
 
@@ -25,12 +26,6 @@ export type VNMMetadata = {
     typeof VNMMetadataShape[K] extends 'object' ? Record<string, Record<string, any>> :
     never
 };
-
-function assert(truth: any, message?: string): void {
-  if (!truth) {
-    throw new Error("Assertion failed" + (message ? ": " + message : ""));
-  }
-}
 
 /**
  * 
@@ -130,10 +125,43 @@ export class VNMListUpdater extends BaseDatumUpdater {
     try {
       const response = await requestUrl(CANONICAL_VNM_LIST_URL);
       const vnm_list: Record<FolderName, URLString> = response.json;
+      assert(typeof vnm_list === "object", "VNM List is a JSON object");
+      for (const [folder, url] of Object.entries(this.plugin.data.canonicalVNMs)) {
+        if (vnm_list[folder]) continue; // The new list knows about this old folder (the usual case)
+
+        // If the old folder isn't known to the new list...
+        delete this.plugin.data.knownFolders[folder];
+        const extant_folder = this.plugin.app.vault.getFolderByPath(folder);
+        const new_folder_name = getKeyWithValue(vnm_list, url);
+        if (new_folder_name) {
+          if (this.plugin.data.installedFolders[folder]) {
+            this.plugin.data.installedFolders[new_folder_name] = this.plugin.data.installedFolders[folder];
+            delete this.plugin.data.installedFolders[folder];
+            if (extant_folder) {
+              await this.plugin.app.vault.adapter.rename(folder, new_folder_name);
+            }
+          }
+        } else {
+          if (extant_folder) {
+            const user_wants_folder_gone = await confirmationModal(
+              "A Module is no longer available",
+              `The module "${folder}" is no longer listed online. Would you like to delete the old folder? (If the folder has simply moved, please select yes.)`,
+              this.plugin.app,
+              `Delete "${folder}"`,
+              "Keep it as an untracked folder",
+            );
+            if (user_wants_folder_gone) {
+              await this.plugin.app.fileManager.trashFile(extant_folder);
+              new Notice(`"${folder}" has been deleted.`);
+            }
+          }
+        }
+      }
       this.plugin.data.canonicalVNMs = vnm_list;
       return true;
     } catch (e) {
       console.error(e);
+      new Notice(`Error updating the Canonical VNM List. No connection?`);
     }
     return false;
   }
