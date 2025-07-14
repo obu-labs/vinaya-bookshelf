@@ -1,0 +1,36 @@
+@import 'tippy.js/dist/tippy.css';
+@import './confirmationmodal.css';
+@import './nux.css';
+@import './pluginsettings.css';
+@import './newmodulemodal.css';
+
+.hidden {
+  display: none !important;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 25.8px; /* same as the height of a setIcon */
+}
+
+.loading-spinner::after {
+  content: "";
+  width: 15px;
+  height: 15px;
+  border: 3px solid var(--text-muted);
+  border-top-color: var(--interactive-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tippy-box[data-theme~='error'] {
+  color: var(--text-error);
+}

@@ -18,6 +18,7 @@ import NewModuleModal from "./newmodulemodal";
 
 interface VNPluginData {
   canonicalVNMs: Record<FolderName, URLString>;
+  userVNMs: Record<FolderName, URLString>;
   knownFolders: Record<FolderName, VNMMetadata>;
   lastUpdatedTimes: Record<string, number>;
   installedFolders: Record<FolderName, InstalledFolderRecord>;
@@ -28,6 +29,7 @@ interface VNPluginData {
 
 const DEFAULT_DATA: VNPluginData = {
   canonicalVNMs: {},
+  userVNMs: {},
   knownFolders: {},
   lastUpdatedTimes: {},
   installedFolders: {},
@@ -92,6 +94,15 @@ export default class VinayaNotebookPlugin extends Plugin {
     await this.saveData(this.data);
   }
 
+  *knownVNMs(): Generator<FolderName> {
+    for (const folder_name in this.data.canonicalVNMs) {
+      yield folder_name;
+    }
+    for (const folder_name in this.data.userVNMs) {
+      yield folder_name;
+    }
+  }
+
   async initiate_background_update() {
     this.settingsTab.setIsUpdating(true);
     const root_updater = new VNMListUpdater(this);
@@ -100,7 +111,7 @@ export default class VinayaNotebookPlugin extends Plugin {
     }
 
     const updatePromises: Promise<void>[] = [];
-    for (const folder_name in this.data.canonicalVNMs) {
+    for (const folder_name of this.knownVNMs()) {
       const vnm_updater = new VNMUpdater(this, folder_name);
       if (vnm_updater.needs_update()) {
         updatePromises.push(vnm_updater.update());
@@ -168,7 +179,7 @@ export default class VinayaNotebookPlugin extends Plugin {
     const root_updater = new VNMListUpdater(this);
     await root_updater.update();
     const updatePromises: Promise<void>[] = [];
-    for (const folder_name in this.data.canonicalVNMs) {
+    for (const folder_name of this.knownVNMs()) {
       const vnm_updater = new VNMUpdater(this, folder_name);
       updatePromises.push(vnm_updater.update());
     }

@@ -1,0 +1,35 @@
+
+.new-module-modal .folder-info {
+  background-color: var(--background-secondary-alt);
+  padding: 1rem;
+  margin: 1rem;
+}
+
+.new-module-modal .folder-info h5 {
+  margin-top: 0;
+}
+
+.new-module-modal .folder-info h5 a {
+  margin-left: 1em;
+}
+
+.new-module-modal .folder-info p {
+  margin-bottom: 0.5em;
+}
+
+.new-module-modal div.button-container {
+  display: flex;
+  place-content: space-around;
+}
+
+.new-module-modal div.button-container button {
+  height: unset;
+  min-height: var(--input-height);
+  white-space: normal;
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.new-module-modal button.close-button {
+  float: right;
+}

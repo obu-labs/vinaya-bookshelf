@@ -1,0 +1,13 @@
+
+.module-settings-section {
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.module-settings-desc p {
+  margin-top: -3px;
+  margin-bottom: 5px;
+}
+
+.module-settings input[type="text"] {
+  width: 100%;
+}

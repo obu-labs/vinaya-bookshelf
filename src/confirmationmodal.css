@@ -1,0 +1,7 @@
+.modal-button-container .danger-button {
+  background-color: #d9534f;
+  color: white;
+}
+.modal-button-container .danger-button:hover {
+  background-color: #c9302c;
+}

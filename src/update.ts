@@ -141,6 +141,10 @@ export class VNMListUpdater extends BaseDatumUpdater {
               await this.plugin.app.vault.adapter.rename(folder, new_folder_name);
             }
           }
+          if (this.plugin.data.folderOptOuts.contains(folder)) {
+            this.plugin.data.folderOptOuts.remove(folder);
+            this.plugin.data.folderOptOuts.push(new_folder_name);
+          }
         } else {
           if (extant_folder) {
             const user_wants_folder_gone = await confirmationModal(
@@ -183,9 +187,53 @@ export class VNMUpdater extends BaseDatumUpdater {
   }
 
   async perform_update(): Promise<boolean> {
-    const vnm_url = this.plugin.data.canonicalVNMs[this.folder_name];
+    const vnm_url = this.plugin.data.canonicalVNMs[this.folder_name] || this.plugin.data.userVNMs[this.folder_name];
     try {
       const metadata: VNMMetadata = await fetch_vnm(vnm_url);
+      if (metadata.folder !== this.folder_name) {
+        if (this.plugin.data.canonicalVNMs[this.folder_name]) {
+          throw new Error(`The expected folder name "${this.folder_name}" didn't match the VNM's name of "${metadata.folder}"`);
+        } 
+        if (!this.plugin.data.userVNMs[this.folder_name]) {
+          throw new Error(`Where did ${this.folder_name} come from if not canonical or user?`);
+        }
+        // This is a user-added folder that has been renamed
+        new Notice(`Renaming "${this.folder_name}" to "${metadata.folder}"...`);
+        this.plugin.data.userVNMs[metadata.folder] = vnm_url;
+        delete this.plugin.data.userVNMs[this.folder_name];
+        const extant_folder = this.plugin.app.vault.getFolderByPath(this.folder_name);
+        const installation = this.plugin.data.installedFolders[this.folder_name];
+        const optedOut = this.plugin.data.folderOptOuts.contains(this.folder_name);
+        delete this.plugin.data.installedFolders[this.folder_name];
+        const target_folder = this.plugin.app.vault.getFolderByPath(metadata.folder);
+        if (extant_folder) {
+          let move_it = true;
+          if (target_folder) {
+            const overwrite_ok = await confirmationModal(
+              "Folder already exists",
+              `Attempting to rename "${this.folder_name}" to "${metadata.folder}", the folder "${metadata.folder}" was found to already exist! Would you like to overwrite it with the contents of "${this.folder_name}"?`,
+              this.plugin.app,
+              `Delete "${metadata.folder}"`,
+              `Keep "${this.folder_name}" and "${metadata.folder}"`,
+            );
+            if (overwrite_ok) {
+              await this.plugin.app.fileManager.trashFile(target_folder);
+            } else {
+              move_it = false;
+            }
+          }
+          if (move_it) {
+            this.plugin.data.installedFolders[metadata.folder] = installation;
+            await this.plugin.app.vault.adapter.rename(this.folder_name, metadata.folder);
+          }
+        }
+        if (optedOut) {
+          this.plugin.data.folderOptOuts.remove(this.folder_name);
+          this.plugin.data.folderOptOuts.push(metadata.folder);
+        }
+        delete this.plugin.data.knownFolders[this.folder_name];
+        this.folder_name = metadata.folder;
+      }
       this.plugin.data.knownFolders[this.folder_name] = metadata;
     } catch (e) {
       console.error(e);
