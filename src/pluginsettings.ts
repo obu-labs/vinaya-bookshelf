@@ -1,10 +1,11 @@
 import { Notice, PluginSettingTab, Setting } from "obsidian";
 import VinayaNotebookPlugin from "./main";
-import { FolderName, FolderUpdater } from "./update";
+import { fetch_vnm, FolderName, FolderUpdater, VNMMetadata } from "./update";
 import * as dayjs from "dayjs";
 import * as relativeTime from "dayjs/plugin/relativeTime";
 import { isUrl } from "./helpers";
 import tippy from 'tippy.js';
+import NewModuleModal from "./newmodulemodal";
 
 dayjs.extend((relativeTime as any).default || relativeTime);
 
@@ -140,23 +141,40 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
             this.custom_url_button.disabled = true;
             this.custom_url_button.setText("");
             this.custom_url_button.addClass("loading-spinner");
-            await sleep(200);
-            console.log(this.custom_url_input.value);
-            this.custom_url_input.style.color = "var(--text-error)";
-            this.custom_url_button.removeClass("loading-spinner");
-            this.custom_url_button.setText("❌");
-            const tip = tippy(this.custom_url_input, {
-              content: "Invalid URL",
-              placement: "top",
-              trigger: "manual",
-              animation: "scale-subtle",
-              hideOnClick: true,
-              theme: 'error',
-            });
-            tip.show();
-            setTimeout(() => {
-              tip?.destroy();
-            }, 2500);
+            const url = this.custom_url_input.value;
+            try {
+              const vnm_data: VNMMetadata = await fetch_vnm(url);
+              this.plugin.data.knownFolders[vnm_data.folder] = vnm_data;
+              this.plugin.data.lastUpdatedTimes[vnm_data.folder + " VNM"] = Date.now();
+              this.plugin.data.userVNMs[vnm_data.folder] = url;
+              this.plugin.save();
+              const modal = new NewModuleModal(
+                this.plugin,
+                new FolderUpdater(this.plugin, vnm_data.folder)
+              );
+              modal.onClose = () => {
+                this.refreshDisplay();
+              };
+              modal.open();
+            } catch (e) {
+              console.error(e);
+              this.custom_url_input.style.color = "var(--text-error)";
+              this.custom_url_button.removeClass("loading-spinner");
+              this.custom_url_button.setText("❌");
+              const tip = tippy(this.custom_url_input, {
+                content: "Invalid URL",
+                placement: "top",
+                trigger: "manual",
+                animation: "scale-subtle",
+                hideOnClick: true,
+                theme: 'error',
+              });
+              tip.show();
+              setTimeout(() => {
+                tip?.destroy();
+              }, 2500);
+              return;
+            }
           });
         this.custom_url_button = btn.buttonEl;
       });
