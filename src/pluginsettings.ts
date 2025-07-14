@@ -144,6 +144,22 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
             const url = this.custom_url_input.value;
             try {
               const vnm_data: VNMMetadata = await fetch_vnm(url);
+              if (this.plugin.data.canonicalVNMs[vnm_data.folder] || this.plugin.data.userVNMs[vnm_data.folder]) {
+                this.custom_url_button.removeClass("loading-spinner");
+                this.custom_url_button.setText("✅");
+                const tip = tippy(this.custom_url_input, {
+                  content: "Module already added",
+                  placement: "top",
+                  trigger: "manual",
+                  animation: "scale-subtle",
+                  hideOnClick: true,
+                });
+                tip.show();
+                setTimeout(() => {
+                  tip?.destroy();
+                }, 2500);
+                return;
+              }
               this.plugin.data.knownFolders[vnm_data.folder] = vnm_data;
               this.plugin.data.lastUpdatedTimes[vnm_data.folder + " VNM"] = Date.now();
               this.plugin.data.userVNMs[vnm_data.folder] = url;
@@ -177,6 +193,11 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
             }
           });
         this.custom_url_button = btn.buttonEl;
+        this.custom_url_input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            this.custom_url_button.click();
+          }
+        });
       });
   }
 }
