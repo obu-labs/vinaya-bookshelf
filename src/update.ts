@@ -190,9 +190,7 @@ export class VNMUpdater extends BaseDatumUpdater {
     const vnm_url = this.plugin.data.canonicalVNMs[this.folder_name] || this.plugin.data.userVNMs[this.folder_name];
     try {
       const metadata: VNMMetadata = await fetch_vnm(vnm_url);
-      console.log(`Got data for ${this.folder_name}`, metadata);
       if (metadata.folder !== this.folder_name) {
-        console.log(`  Foldername mismatch: ${metadata.folder} !== ${this.folder_name}`);
         if (this.plugin.data.canonicalVNMs[this.folder_name]) {
           throw new Error(`The expected folder name "${this.folder_name}" didn't match the VNM's name of "${metadata.folder}"`);
         } 

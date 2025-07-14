@@ -174,15 +174,12 @@ export default class VinayaNotebookPlugin extends Plugin {
   }
 
   async force_update() {
-    console.log("Force update called");
     const original_notice = new Notice("Checking for updates...");
     this.settingsTab.setIsUpdating(true);
     const root_updater = new VNMListUpdater(this);
     await root_updater.update();
     const updatePromises: Promise<void>[] = [];
-    console.log(Array.from(this.knownVNMs()));
     for (const folder_name of this.knownVNMs()) {
-      console.log(`Checking ${folder_name} for updates...`);
       const vnm_updater = new VNMUpdater(this, folder_name);
       updatePromises.push(vnm_updater.update());
     }
