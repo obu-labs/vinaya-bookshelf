@@ -174,8 +174,8 @@ export default class VinayaNotebookPlugin extends Plugin {
     }
     await Promise.all(updatePromises);
     const did_update = await this.update_folders();
+    original_notice.hide();
     if (!did_update) {
-      original_notice.hide();
       new Notice("No updates available.");
     }
     this.settingsTab.setIsUpdating(false);
