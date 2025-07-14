@@ -6,6 +6,11 @@ set -euo pipefail
 # --- Helpers ---------------------------------------------------------------
 die() { echo "❌ $1" >&2; exit 1; }
 
+if [ "$(git branch --show-current)" != "main" ]; then
+  echo "You are not on the main branch!"
+  exit 1
+fi
+
 # --- 0. Make sure the build works -----------------------------------------
 if pgrep -f "npm run dev" > /dev/null; then
   echo "Error: 'npm run dev' is still running. Close it and retry."
