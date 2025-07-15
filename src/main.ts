@@ -103,6 +103,21 @@ export default class VinayaNotebookPlugin extends Plugin {
     }
   }
 
+  installed_modules_relying_on(folder_name: FolderName): Array<FolderName> {
+    const ret: Array<FolderName> = [];
+    for (const installed_folder_name in this.data.installedFolders) {
+      const extant_folder = this.app.vault.getFolderByPath(installed_folder_name);
+      if (!extant_folder) {
+        continue;
+      }
+      const folder_vnm = this.data.knownFolders[installed_folder_name];
+      if (folder_vnm && folder_vnm.requires[folder_name]) {
+        ret.push(installed_folder_name);
+      }
+    }
+    return ret;
+  }
+
   async initiate_background_update() {
     this.settingsTab.setIsUpdating(true);
     const root_updater = new VNMListUpdater(this);

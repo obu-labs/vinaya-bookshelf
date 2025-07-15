@@ -313,9 +313,28 @@ export class FolderUpdater extends BaseDatumUpdater {
 
     const folder = this.plugin.app.vault.getFolderByPath(normalizePath(this.folder_name));
     if (folder && !silently) {
+      const message_fragment = new DocumentFragment();
+      message_fragment.createEl("p", {
+        text: "Vinaya Notebook will no longer download updates for this module. Would you also like to delete the folder?"
+      });
+      const dependents = this.plugin.installed_modules_relying_on(this.folder_name);
+      if (dependents.length > 0) {
+        message_fragment.createEl("p", {
+          text: `This module is currently being referenced by ${dependents.length} other module${dependents.length === 1 ? "" : "s"}:`
+        });
+        const ul = message_fragment.createEl("ul");
+        for (const dependent of dependents) {
+          ul.createEl("li", {
+            text: dependent
+          });
+        }
+        message_fragment.createEl("p", {
+          text: "If you delete this folder, some links in these modules will stop working."
+        })
+      }
       const user_wants_it_gone = await confirmationModal(
         "You are unsubscribed!",
-        "Vinaya Notebook will no longer download updates for this module. Would you also like to delete the folder?",
+        message_fragment,
         this.plugin.app,
         `Delete the "${folder.name}" folder now`,
         "Keep the folder",

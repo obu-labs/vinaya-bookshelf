@@ -6,7 +6,7 @@ class ConfirmModal extends Modal {
   constructor(
     app: App,
     heading: string,
-    message: string,
+    message: string | DocumentFragment,
     confirm_text: string,
     cancel_text: string,
     resolve: (value: boolean) => void,
@@ -18,7 +18,11 @@ class ConfirmModal extends Modal {
 
     const content = this.contentEl;
     content.createEl("h3", { text: heading });
-    content.createEl("p", { text: message });
+    if (message instanceof DocumentFragment) {
+      content.appendChild(message);
+    } else {
+      content.createEl("p", { text: message });
+    }
 
     const buttonContainer = content.createDiv({ cls: "modal-button-container" });
 
@@ -45,7 +49,7 @@ class ConfirmModal extends Modal {
  */
 export default async function confirmationModal(
   heading: string,
-  message: string,
+  message: string | DocumentFragment,
   app: App,
   confirm_text: string = "Do it",
   cancel_text: string = "Cancel",
