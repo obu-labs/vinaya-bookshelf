@@ -5,7 +5,9 @@ import * as dayjs from "dayjs";
 import * as relativeTime from "dayjs/plugin/relativeTime";
 import { isUrl } from "./helpers";
 import tippy from 'tippy.js';
+import confirmationModal from "./confirmationmodal";
 import NewModuleModal from "./newmodulemodal";
+import { read } from "fs";
 
 dayjs.extend((relativeTime as any).default || relativeTime);
 
@@ -92,17 +94,52 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
         const moduleEl = feedSection.createDiv({ cls: "module-settings" });
         const updater = new FolderUpdater(this.plugin, name);
         const setting = new Setting(moduleEl)
-          .setName(name)
-          .addToggle((toggle) => {
-            toggle
-              .setValue(updater.subscribed())
-              .onChange((value) => {
-                if (value) {
-                  updater.subscribe();
-                } else {
-                  updater.unsubscribe();
-                }
+          .setName(name);
+        if (this.plugin.data.userVNMs[name]) {
+          setting.addExtraButton((btn) => {
+            btn.setIcon("trash");
+            btn.onClick(async () => {
+              const confirm_message = new DocumentFragment();
+              confirm_message.createEl("p", { text: "Deleting this custom module will unsubscribe you from it. You can always add it back again later by adding its URL:" });
+              const input = confirm_message.createEl("input", {
+                attr: {
+                  type: "text",
+                  value: this.plugin.data.userVNMs[name],
+                  readonly: true,
+                },
               });
+              input.style.width = "100%";
+              input.addEventListener("focus", () => {
+                input.select();
+              });
+              const user_wants_it_gone = await confirmationModal(
+                `Are you sure you want to delete "${name}"?`,
+                confirm_message,
+                this.plugin.app,
+                "Unsubscribe and Forget",
+                "Cancel"
+              );
+              if (!user_wants_it_gone) {
+                return;
+              }
+              await updater.unsubscribe();
+              delete this.plugin.data.userVNMs[name];
+              delete this.plugin.data.knownFolders[name];
+              await this.plugin.save();
+              this.refreshDisplay();
+            });
+          })
+        }
+        setting.addToggle((toggle) => {
+          toggle
+            .setValue(updater.subscribed())
+            .onChange((value) => {
+              if (value) {
+                updater.subscribe();
+              } else {
+                updater.unsubscribe();
+              }
+            });
           });
         const descEl = setting.descEl.createDiv({ cls: "module-settings-desc" });
         const metaEl = descEl.createEl("p", { text: `Version: ${vnmdata.version}` });
