@@ -290,9 +290,19 @@ export class FolderUpdater extends BaseDatumUpdater {
   }
 
   async subscribe() {
-    this.plugin.data.folderOptOuts.remove(this.folder_name);
-    await this.perform_update();
-    await this.plugin.save();
+    let subbed = false;
+    if (this.plugin.data.folderOptOuts.contains(this.folder_name)) {
+      this.plugin.data.folderOptOuts.remove(this.folder_name);
+      await this.plugin.save();
+      subbed = true;
+    }
+    if (this.needs_update()) {
+      await this.update();
+    } else {
+      if (subbed) {
+        new Notice(`Will keep "${this.folder_name}" up-to-date!`);
+      }
+    }
   }
 
   async unsubscribe(silently?: boolean) {
