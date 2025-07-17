@@ -11,6 +11,12 @@ const CANONICAL_VNM_LIST_URL = "https://labs.buddhistuniversity.net/vinaya/canon
 export type FolderName = string;
 export type URLString = string;
 
+export interface SubmoduleMetadata {
+  name: string;
+  paths: string[];
+  requires: Record<string, any>;
+};
+
 const VNMMetadataShape = {
   folder: 'string', // The folder name as realized
   more_info: 'string', // Link to learn about this folder
@@ -18,13 +24,18 @@ const VNMMetadataShape = {
   version: 'string', // Latest version in MAJOR.MINOR.PATCH format
   requires: 'object', // Mapping of other folder to its subfolders (recursive)
   zip: 'string', // URL of the zip containing the folder's contents
+  submodules: 'array', // A list of Submodules
 } as const;
 
 export type VNMMetadata = {
-  [K in keyof typeof VNMMetadataShape]:
+  [K in keyof typeof VNMMetadataShape as typeof VNMMetadataShape[K] extends 'array' ? never : K]:
     typeof VNMMetadataShape[K] extends 'string' ? string :
     typeof VNMMetadataShape[K] extends 'object' ? Record<string, Record<string, any>> :
-    never
+    never;
+} & {
+  // Mark the 'array' fields as optional
+  // Can replace Array<SubmoduleMetadata> with Record<string, any>[] if we ever have multiple array fields
+  [K in keyof typeof VNMMetadataShape as typeof VNMMetadataShape[K] extends 'array' ? K : never]?: Array<SubmoduleMetadata>;
 };
 
 /**
@@ -38,7 +49,16 @@ export async function fetch_vnm(url: string): Promise<VNMMetadata> {
   const metadata: any = response.json;
   assert(typeof metadata === "object", "VNMs are JSON objects");
   for (const [key, value] of Object.entries(VNMMetadataShape)) {
-    assert(typeof metadata[key] === value, `${key} must be a(n) ${value}`);
+    if (value === 'array') {
+      if (metadata[key]) { // array values are optional
+        assert(Array.isArray(metadata[key]), `${key} must be an array`);
+        for (const item of metadata[key]) {
+          assert(typeof item === 'object', `${key} must be an array of objects`);
+        }
+      }
+    } else {
+      assert(typeof metadata[key] === value, `${key} must be a(n) ${value}`);
+    }
   }
   return metadata;
 }
