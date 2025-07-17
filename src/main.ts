@@ -103,7 +103,7 @@ export default class VinayaNotebookPlugin extends Plugin {
     }
   }
 
-  installed_modules_relying_on(folder_name: FolderName): Array<FolderName> {
+  installed_modules_relying_on(folder_name: FolderName): Array<string> {
     const ret: Array<FolderName> = [];
     for (const installed_folder_name in this.data.installedFolders) {
       const extant_folder = this.app.vault.getFolderByPath(installed_folder_name);
@@ -120,7 +120,7 @@ export default class VinayaNotebookPlugin extends Plugin {
         }
         for (const submodule of folder_vnm.submodules) {
           if (submodule.requires[folder_name]) {
-            ret.push(installed_folder_name);
+            ret.push(installed_folder_name + " > " + submodule.name);
             break;
           }
         }
