@@ -113,6 +113,17 @@ export default class VinayaNotebookPlugin extends Plugin {
       const folder_vnm = this.data.knownFolders[installed_folder_name];
       if (folder_vnm && folder_vnm.requires[folder_name]) {
         ret.push(installed_folder_name);
+      } else {
+        // check if any of its submodules require this folder
+        if (!folder_vnm || !folder_vnm.submodules) {
+          continue;
+        }
+        for (const submodule of folder_vnm.submodules) {
+          if (submodule.requires[folder_name]) {
+            ret.push(installed_folder_name);
+            break;
+          }
+        }
       }
     }
     return ret;
