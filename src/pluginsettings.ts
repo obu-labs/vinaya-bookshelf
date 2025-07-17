@@ -8,7 +8,6 @@ import tippy from 'tippy.js';
 import confirmationModal from "./confirmationmodal";
 import NewModuleModal from "./newmodulemodal";
 import { hashForFolder } from "./hashutils";
-import { warn } from "console";
 
 dayjs.extend((relativeTime as any).default || relativeTime);
 
