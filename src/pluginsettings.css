@@ -11,3 +11,20 @@
 .module-settings input[type="text"] {
   width: 100%;
 }
+
+.submodules {
+  padding-left: 1em;
+  font-size: 98%;
+}
+
+.submodule {
+  padding-left: 1em;
+}
+
+.submodule button {
+  max-width: 4em;
+}
+
+.submodule .setting-item-name {
+  font-size: 96%;
+}

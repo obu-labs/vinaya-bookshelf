@@ -42,7 +42,8 @@ export async function hashForFiles(files: Iterable<TFile>, relativeTo?: TFolder)
   const fileHashes: Map<string, string> = new Map<string, string>();
   for (const { file, hash } of filesAndHashes) {
     if (relativeTo) {
-      fileHashes.set(file.path.substring(relativeTo.path.length + 1), hash);
+      const rel_path = file.path.substring(relativeTo.path.length + 1);
+      fileHashes.set(rel_path, hash);
     } else {
       fileHashes.set(file.path, hash);
     }

@@ -7,7 +7,8 @@ import {
   InstalledFolderRecord,
   VNMListUpdater,
   VNMMetadata,
-  VNMUpdater
+  VNMUpdater,
+  SubmoduleMetadata
 } from "./update";
 import {
   checkAppSettings,
@@ -15,6 +16,7 @@ import {
 import openNuxModelWhenReady from "./nux";
 import { VinayaNotebookSettingsTab } from "./pluginsettings";
 import NewModuleModal from "./newmodulemodal";
+import { deepMergeTrie, trieHasPath } from "./helpers";
 
 interface VNPluginData {
   canonicalVNMs: Record<FolderName, URLString>;
@@ -123,6 +125,38 @@ export default class VinayaNotebookPlugin extends Plugin {
             ret.push(installed_folder_name + " > " + submodule.name);
             break;
           }
+        }
+      }
+    }
+    return ret;
+  }
+
+  installed_modules_relying_on_submodule(folder_name: FolderName, submodule: SubmoduleMetadata): Array<string> {
+    const ret: Array<FolderName> = [];
+    for (const installed_folder_name in this.data.installedFolders) {
+      const extant_folder = this.app.vault.getFolderByPath(installed_folder_name);
+      if (!extant_folder) {
+        continue;
+      }
+      const folder_vnm = this.data.knownFolders[installed_folder_name];
+      if (!folder_vnm) {
+        continue;
+      }
+      let merged_reqs = Object.assign({}, folder_vnm.requires);
+      if (folder_vnm.submodules) {
+        for (const submodule of folder_vnm.submodules) {
+          if (this.data.folderOptOuts.contains(installed_folder_name + "/" + submodule.name)) {
+            continue;
+          }
+          merged_reqs = deepMergeTrie(merged_reqs, submodule.requires);
+        }
+      }
+      for (const path of submodule.paths) {
+        let pathParts = path.split("/");
+        pathParts.unshift(folder_name);
+        if (trieHasPath(merged_reqs, pathParts)) {
+          ret.push(installed_folder_name);
+          break;
         }
       }
     }
@@ -241,6 +275,11 @@ export default class VinayaNotebookPlugin extends Plugin {
     if (this.data.installedFolders[file.path]) {
       const folder_updater = new FolderUpdater(this, file.path);
       folder_updater.unsubscribe(true);
+    }
+    const puntkey = file.path + " Folder Punted";
+    if (this.data.lastUpdatedTimes[puntkey]) {
+      delete this.data.lastUpdatedTimes[puntkey];
+      this.save();
     }
   }
 

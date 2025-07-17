@@ -1,4 +1,4 @@
-import { Notice, PluginSettingTab, Setting } from "obsidian";
+import { normalizePath, Notice, PluginSettingTab, Setting } from "obsidian";
 import VinayaNotebookPlugin from "./main";
 import { fetch_vnm, FolderName, FolderUpdater, VNMMetadata } from "./update";
 import * as dayjs from "dayjs";
@@ -7,7 +7,8 @@ import { isUrl } from "./helpers";
 import tippy from 'tippy.js';
 import confirmationModal from "./confirmationmodal";
 import NewModuleModal from "./newmodulemodal";
-import { read } from "fs";
+import { hashForFolder } from "./hashutils";
+import { warn } from "console";
 
 dayjs.extend((relativeTime as any).default || relativeTime);
 
@@ -93,6 +94,7 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
       .forEach(([name, vnmdata]) => {
         const moduleEl = feedSection.createDiv({ cls: "module-settings" });
         const updater = new FolderUpdater(this.plugin, name);
+        const moduleFolder = this.app.vault.getFolderByPath(name);
         const setting = new Setting(moduleEl)
           .setName(name);
         if (this.plugin.data.userVNMs[name]) {
@@ -134,10 +136,16 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
           toggle
             .setValue(updater.subscribed())
             .onChange((value) => {
+              // Explicitly changing subscription resets the punt time
+              delete this.plugin.data.lastUpdatedTimes[name + " Folder Punted"];
               if (value) {
-                updater.subscribe();
+                updater.subscribe().then(() => {
+                  this.refreshDisplay();
+                });
               } else {
-                updater.unsubscribe();
+                updater.unsubscribe().then(() => {
+                  this.refreshDisplay();
+                });
               }
             });
           });
@@ -151,6 +159,97 @@ export class VinayaNotebookSettingsTab extends PluginSettingTab {
           metaEl.createEl("a", { text: "Source", href: vnmdata.more_info });
         }
         descEl.createEl("p", { text: vnmdata.description });
+        if (updater.subscribed() && vnmdata.submodules && vnmdata.submodules.length > 0) {
+          const submodulesEl = moduleEl.createDiv({ cls: "submodules", text: "Submodules:" });
+          vnmdata.submodules.forEach((submodule) => {
+            const submoduleEl = submodulesEl.createDiv({ cls: "submodule" });
+            const isOptedOut = this.plugin.data.folderOptOuts.contains(`${name}/${submodule.name}`);
+            const submoduleSetting = new Setting(submoduleEl)
+              .setName("↳ " + submodule.name);
+            if (moduleFolder) {
+              submoduleSetting.addButton((btn) => {
+                if (isOptedOut) {
+                  btn
+                    .setIcon("download")
+                    .onClick(async () => {
+                      this.plugin.data.folderOptOuts.remove(`${name}/${submodule.name}`);
+                      btn.setButtonText("");
+                      btn.buttonEl.addClass("loading-spinner");
+                      await updater.update();
+                      this.refreshDisplay();
+                    });
+                } else {
+                  btn
+                    .setIcon("trash")
+                    .onClick(async () => {
+                      const reliant_modules = this.plugin.installed_modules_relying_on_submodule(name, submodule);
+                      if (reliant_modules.length > 0) {
+                        const warning_body = new DocumentFragment();
+                        warning_body.createEl("p", {
+                          text: "The following modules contain links which reference this submodule:"
+                        });
+                        const ul = warning_body.createEl("ul");
+                        for (const reliant_module of reliant_modules) {
+                          ul.createEl("li", {
+                            text: reliant_module
+                          });
+                        }
+                        warning_body.createEl("p", {
+                          text: "Removing this submodule will break whatever links in those modules refer to it. Are you sure you want to continue?"
+                        })
+                        const ignore_reliant_modules = await confirmationModal(
+                          "Warning: Some modules reference this submodule",
+                          warning_body,
+                          this.plugin.app,
+                          `Delete "${submodule.name}"`,
+                          "Cancel"
+                        );
+                        if (!ignore_reliant_modules) {
+                          return;
+                        }
+                      }
+                      btn.setButtonText("");
+                      btn.buttonEl.addClass("loading-spinner");
+                      const notice = new Notice(`Uninstalling "${name} > ${submodule.name}"...`, 0);
+                      const currentFolderHash = await hashForFolder(moduleFolder);
+                      if (currentFolderHash !== this.plugin.data.installedFolders[name].hash) {
+                        const continue_with_uninstall = await confirmationModal(
+                          "Remove possibly modified submodule?",
+                          "This module has been modified since it was initially installed. Are you sure you want to uninstall \""+submodule.name+"\"?",
+                          this.plugin.app,
+                          "Delete \""+submodule.name+"\"",
+                          "Cancel"
+                        );
+                        if (!continue_with_uninstall) {
+                          btn.buttonEl.removeClass("loading-spinner");
+                          btn.setIcon("trash");
+                          notice.hide();
+                          return;
+                        }
+                      }
+                      for (const subfolder of submodule.paths) {
+                        const tsub = this.app.vault.getFolderByPath(normalizePath(`${name}/${subfolder}`));
+                        if (tsub) {
+                          notice.setMessage(`Uninstalling "${name}/${subfolder}"...`);
+                          await this.app.fileManager.trashFile(tsub);
+                        }
+                      }
+                      notice.setMessage(`Uninstalling "${name} > ${submodule.name}"...`);
+                      const new_folder_hash = await hashForFolder(moduleFolder);
+                      this.plugin.data.installedFolders[name].hash = new_folder_hash;
+                      this.plugin.data.folderOptOuts.push(`${name}/${submodule.name}`);
+                      await updater.register_update();
+                      notice.setMessage(`Uninstalled "${name} > ${submodule.name}"`);
+                      setTimeout(() => {
+                        notice.hide();
+                      }, 3000);
+                      this.refreshDisplay();
+                    });
+                }
+              });
+            }
+          });
+        }
       });
     const addModuleEl = feedSection.createDiv({ cls: "module-settings" });
     const setting = new Setting(addModuleEl)

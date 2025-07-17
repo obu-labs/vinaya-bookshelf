@@ -381,6 +381,7 @@ export class FolderUpdater extends BaseDatumUpdater {
         new Notice(`Unsubscribed from "${this.folder_name}".`);
       }
     }
+    this.plugin.settingsTab.refreshDisplay();
   }
 
   subscribed(): boolean {
@@ -430,12 +431,23 @@ export class FolderUpdater extends BaseDatumUpdater {
 
     const original_notice = new Notice(`Installing new "${this.folder_name}" folder...`, 0);
     const vnm_data = this.plugin.data.knownFolders[this.folder_name];
+    const excludedPaths = [];
+    if (vnm_data.submodules) {
+      for (const submodule of vnm_data.submodules) {
+        if (this.plugin.data.folderOptOuts.contains(`${this.folder_name}/${submodule.name}`)) {
+          for (const subpath of submodule.paths) {
+            excludedPaths.push(subpath);
+          }
+        }
+      }
+    }
     try {
       const hash = await downloadZip(
         vnm_data.zip,
         this.folder_name,
         this.plugin.app,
-        original_notice
+        original_notice,
+        excludedPaths,
       );
       this.plugin.data.installedFolders[this.folder_name] = {
         version: vnm_data.version,
