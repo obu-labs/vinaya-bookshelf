@@ -18,6 +18,7 @@ if pgrep -f "npm run dev" > /dev/null; then
 fi
 
 rm -f main.js
+npm update
 npm run build
 [[ -f main.js ]] || die "Build failed: please fix and try again"
 echo "Build succeeded"
