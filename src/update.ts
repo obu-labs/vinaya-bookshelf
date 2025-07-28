@@ -1,5 +1,5 @@
 import { Notice, requestUrl, Platform, normalizePath } from "obsidian";
-import VinayaNotebookPlugin from "./main";
+import VinayaBookshelfPlugin from "./main";
 import { hashForFolder } from "./hashutils";
 import downloadZip from "./downloadZip";
 import confirmationModal from "./confirmationmodal";
@@ -69,8 +69,8 @@ export interface InstalledFolderRecord {
 }
 
 class BaseDatumUpdater {
-  plugin: VinayaNotebookPlugin;
-  constructor(plugin: VinayaNotebookPlugin) {
+  plugin: VinayaBookshelfPlugin;
+  constructor(plugin: VinayaBookshelfPlugin) {
     this.plugin = plugin;
   }
 
@@ -193,7 +193,7 @@ export class VNMListUpdater extends BaseDatumUpdater {
 
 export class VNMUpdater extends BaseDatumUpdater {
   folder_name: string;
-  constructor(plugin: VinayaNotebookPlugin, folder_name: string) {
+  constructor(plugin: VinayaBookshelfPlugin, folder_name: string) {
     super(plugin);
     this.folder_name = folder_name;
   }
@@ -266,7 +266,7 @@ export class VNMUpdater extends BaseDatumUpdater {
 export class FolderUpdater extends BaseDatumUpdater {
   folder_name: string;
   warn_about_overwrites: boolean;
-  constructor(plugin: VinayaNotebookPlugin, folder_name: string) {
+  constructor(plugin: VinayaBookshelfPlugin, folder_name: string) {
     super(plugin);
     this.folder_name = folder_name;
     // If the user of class really knows what they're doing,

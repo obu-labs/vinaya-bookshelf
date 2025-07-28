@@ -1,6 +1,6 @@
 import { App, normalizePath, Notice } from "obsidian";
 import confirmationModal from "./confirmationmodal";
-import VinayaNotebookPlugin from "./main";
+import VinayaBookshelfPlugin from "./main";
 
 // 20 seconds polling interval is a balance between finding out immediately
 // and not wasting system resources reading the file again and again
@@ -45,7 +45,7 @@ export async function get_app_settings(app: App): Promise<Record<string, any>> {
   return config;
 }
 
-export async function checkAppSettings(plugin: VinayaNotebookPlugin) {
+export async function checkAppSettings(plugin: VinayaBookshelfPlugin) {
   if (is_settings_modal_open()) {
     plugin.settingsChecker = setTimeout(async () => {
       await checkAppSettings(plugin);

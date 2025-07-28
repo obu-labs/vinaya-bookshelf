@@ -1,9 +1,9 @@
 import { Modal } from "obsidian";
-import VinayaNotebookPlugin from "./main";
+import VinayaBookshelfPlugin from "./main";
 import { FolderUpdater } from "./update";
 
 export default class NewModuleModal extends Modal {
-  constructor(plugin: VinayaNotebookPlugin, module: FolderUpdater) {
+  constructor(plugin: VinayaBookshelfPlugin, module: FolderUpdater) {
     super(plugin.app);
 
     this.setTitle("🎉 A new module is available!");

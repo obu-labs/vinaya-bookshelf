@@ -14,11 +14,11 @@ import {
   checkAppSettings,
 } from "./appsettings";
 import openNuxModelWhenReady from "./nux";
-import { VinayaNotebookSettingsTab } from "./pluginsettings";
+import { VinayaBookshelfSettingsTab } from "./pluginsettings";
 import NewModuleModal from "./newmodulemodal";
 import { deepMergeTrie, trieHasPath } from "./helpers";
 
-interface VNPluginData {
+interface VBPluginData {
   canonicalVNMs: Record<FolderName, URLString>;
   userVNMs: Record<FolderName, URLString>;
   knownFolders: Record<FolderName, VNMMetadata>;
@@ -29,7 +29,7 @@ interface VNPluginData {
   folderOptOuts: Array<FolderName>;
 }
 
-const DEFAULT_DATA: VNPluginData = {
+const DEFAULT_DATA: VBPluginData = {
   canonicalVNMs: {},
   userVNMs: {},
   knownFolders: {},
@@ -40,17 +40,17 @@ const DEFAULT_DATA: VNPluginData = {
   folderOptOuts: [],
 };
 
-export default class VinayaNotebookPlugin extends Plugin {
-  data: VNPluginData;
+export default class VinayaBookshelfPlugin extends Plugin {
+  data: VBPluginData;
   settingsChecker: any;
-  settingsTab: VinayaNotebookSettingsTab;
+  settingsTab: VinayaBookshelfSettingsTab;
   personalFolderName: FolderName;
 
   async onload() {
     this.data = Object.assign({}, DEFAULT_DATA, await this.loadData());
     this.personalFolderName = "checkAppSettings will set this";
 
-    this.settingsTab = new VinayaNotebookSettingsTab(this);
+    this.settingsTab = new VinayaBookshelfSettingsTab(this);
     this.addSettingTab(this.settingsTab);
 
     this.registerEvent(

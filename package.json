@@ -1,7 +1,7 @@
 {
-  "name": "vinaya-notebook",
+  "name": "vinaya-bookshelf",
   "version": "1.6.0",
-  "description": "Coordinates the sharing of notes about the Vinaya.",
+  "description": "An Obsidian plugin for downloading resources for studying the Buddhist Monastic rules.",
   "main": "main.js",
   "scripts": {
     "watch:css": "postcss src/main.css -o styles.css --watch",
@@ -11,7 +11,8 @@
     "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
   "keywords": [
-    "vinaya"
+    "vinaya",
+    "obsidian"
   ],
   "author": "Khemarato Bhikkhu",
   "license": "MIT",

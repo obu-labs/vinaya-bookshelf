@@ -1,6 +1,6 @@
 import { normalizePath, Notice, PluginSettingTab, Setting } from "obsidian";
-import VinayaNotebookPlugin from "./main";
-import { fetch_vnm, FolderName, FolderUpdater, VNMMetadata } from "./update";
+import VinayaBookshelfPlugin from "./main";
+import { fetch_vnm, FolderUpdater, VNMMetadata } from "./update";
 import * as dayjs from "dayjs";
 import * as relativeTime from "dayjs/plugin/relativeTime";
 import { isUrl } from "./helpers";
@@ -11,14 +11,14 @@ import { hashForFolder } from "./hashutils";
 
 dayjs.extend((relativeTime as any).default || relativeTime);
 
-export class VinayaNotebookSettingsTab extends PluginSettingTab {
-  plugin: VinayaNotebookPlugin;
+export class VinayaBookshelfSettingsTab extends PluginSettingTab {
+  plugin: VinayaBookshelfPlugin;
   is_updating: boolean;
   is_foregrounded: boolean;
   custom_url_input: HTMLInputElement;
   custom_url_button: HTMLButtonElement;
 
-  constructor(plugin: VinayaNotebookPlugin) {
+  constructor(plugin: VinayaBookshelfPlugin) {
     super(plugin.app, plugin);
     this.plugin = plugin;
     this.is_updating = false;

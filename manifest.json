@@ -1,9 +1,9 @@
 {
-	"id": "vinaya-notebook",
-	"name": "Vinaya Notebook",
+	"id": "vinaya-bookshelf",
+	"name": "Vinaya Bookshelf",
 	"version": "1.6.0",
 	"minAppVersion": "0.15.0",
-	"description": "Coordinates the sharing of notes about the Vinaya.",
+	"description": "A collection of resources for studying the Buddhist Monastic rules.",
 	"author": "Khemarato Bhikkhu",
 	"authorUrl": "https://github.com/khemarato",
 	"isDesktopOnly": false
