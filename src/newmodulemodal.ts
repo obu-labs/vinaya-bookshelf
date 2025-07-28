@@ -33,7 +33,7 @@ export default class NewModuleModal extends Modal {
     }).addEventListener("click", () => {
       content.empty();
       const p = content.createEl("p", {
-        text: "Great! Vinaya Notebook will now download and install the new module in the background. You may close this dialog and continue to use the app but please don't close Obsidian until the installation has completed."
+        text: "Great! Vinaya Bookshelf will now download and install the new module in the background. You may close this dialog and continue to use the app but please don't close Obsidian until the installation has completed."
       });
       content.createEl("button", {
         text: "Close",
