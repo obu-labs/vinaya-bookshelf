@@ -35,5 +35,8 @@ are most welcome as GitHub Issues on this repository.
 
 ## License
 
-This plugin is provided under the MIT License
-and uses the [JSZip Library](https://stuk.github.io/jszip/).
+This plugin is provided under the MIT License.
+
+It uses:
+ - [JSZip](https://stuk.github.io/jszip/)
+ - [Tippy.js](https://atomiks.github.io/tippyjs/)
