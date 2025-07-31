@@ -28,3 +28,14 @@
 .submodule .setting-item-name {
   font-size: 96%;
 }
+
+/* These two rules need such high specificity to override the default styles */
+.is-phone div.submodules .submodule .setting-item {
+  flex-direction: unset;
+  align-items: unset;
+}
+.is-phone div.submodules .submodule .setting-item .setting-item-control {
+  width: fit-content;
+  margin-top: 0px;
+}
+
