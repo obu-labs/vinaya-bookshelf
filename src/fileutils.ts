@@ -38,7 +38,7 @@ export async function pruneFolder(app: App, folder: TFolder, filesToKeep: Iterab
     let keptChildren = false;
     const files_to_delete: TFile[] = [];
     const folders_to_delete: TFolder[] = [];
-    for (const child of [...(node as TFolder).children]) {
+    for (const child of [...node.children]) {
       const { 
         keep_any,
         files_to_delete: child_files_to_delete,
