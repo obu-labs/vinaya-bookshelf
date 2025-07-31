@@ -1,6 +1,6 @@
 {
   "name": "vinaya-bookshelf",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "An Obsidian plugin for downloading resources for studying the Buddhist Monastic rules.",
   "main": "main.js",
   "scripts": {
