@@ -43,7 +43,7 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
 
   display(): void {
     this.is_foregrounded = true;
-    let { containerEl } = this;
+    const { containerEl } = this;
     containerEl.empty();
 
     new Setting(containerEl)
@@ -83,7 +83,7 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
         }
       });
     
-    new Setting(containerEl).setHeading().setName("Module Subscriptions")
+    new Setting(containerEl).setHeading().setName("Module subscriptions")
       .setDesc("Toggle any module off to stop receiving updates for it.");
     
     const feedSection = containerEl.createDiv({ cls: "module-settings-section" });    
@@ -252,8 +252,8 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
         }
       });
     const addModuleEl = feedSection.createDiv({ cls: "module-settings" });
-    const setting = new Setting(addModuleEl)
-      .setName("Add Module")
+    new Setting(addModuleEl)
+      .setName("Add module")
       .setDesc("Add a new module by URL.")
       .addText((text) => {
         text
@@ -262,10 +262,11 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
             if (isUrl(value)) {
               this.custom_url_button.setText("+");
               this.custom_url_button.disabled = false;
-              this.custom_url_input.style.color = "var(--text-normal)";
+              this.custom_url_input.removeClasses(['warn-color', 'error-color']);
             } else {
               this.custom_url_button.disabled = true;
-              this.custom_url_input.style.color = "var(--text-warning)";
+              this.custom_url_input.addClass('warn-color');
+              this.custom_url_input.removeClass('error-color');
             }
           });
         this.custom_url_input = text.inputEl;
@@ -310,7 +311,8 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
               modal.open();
             } catch (e) {
               console.error(e);
-              this.custom_url_input.style.color = "var(--text-error)";
+              this.custom_url_input.addClass('error-color');
+              this.custom_url_input.removeClass('warn-color');
               this.custom_url_button.removeClass("loading-spinner");
               this.custom_url_button.setText("❌");
               const tip = tippy(this.custom_url_input, {

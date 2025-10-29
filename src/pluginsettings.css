@@ -39,3 +39,10 @@
   margin-top: 0px;
 }
 
+.warn-color {
+  color: var(--text-warning) !important;
+}
+
+.error-color {
+  color: var(--text-error) !important;
+}
