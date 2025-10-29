@@ -1,10 +1,9 @@
-import { normalizePath, Notice, PluginSettingTab, Setting } from "obsidian";
+import { normalizePath, Notice, PluginSettingTab, Setting, displayTooltip } from "obsidian";
 import VinayaBookshelfPlugin from "./main";
 import { fetch_vnm, FolderUpdater, VNMMetadata } from "./update";
 import * as dayjs from "dayjs";
 import * as relativeTime from "dayjs/plugin/relativeTime";
 import { isUrl } from "./helpers";
-import tippy from 'tippy.js';
 import confirmationModal from "./confirmationmodal";
 import NewModuleModal from "./newmodulemodal";
 import { hashForFolder } from "./hashutils";
@@ -284,17 +283,7 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
               if (this.plugin.data.canonicalVNMs[vnm_data.folder] || this.plugin.data.userVNMs[vnm_data.folder]) {
                 this.custom_url_button.removeClass("loading-spinner");
                 this.custom_url_button.setText("✅");
-                const tip = tippy(this.custom_url_input, {
-                  content: "Module already added",
-                  placement: "top",
-                  trigger: "manual",
-                  animation: "scale-subtle",
-                  hideOnClick: true,
-                });
-                tip.show();
-                setTimeout(() => {
-                  tip?.destroy();
-                }, 2500);
+                displayTooltip(this.custom_url_input, "Module already added", {placement: "top"});
                 return;
               }
               this.plugin.data.knownFolders[vnm_data.folder] = vnm_data;
@@ -315,18 +304,7 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
               this.custom_url_input.removeClass('warn-color');
               this.custom_url_button.removeClass("loading-spinner");
               this.custom_url_button.setText("❌");
-              const tip = tippy(this.custom_url_input, {
-                content: "Invalid URL",
-                placement: "top",
-                trigger: "manual",
-                animation: "scale-subtle",
-                hideOnClick: true,
-                theme: 'error',
-              });
-              tip.show();
-              setTimeout(() => {
-                tip?.destroy();
-              }, 2500);
+              displayTooltip(this.custom_url_input, "Invalid URL", {placement: "top"});
               return;
             }
           });

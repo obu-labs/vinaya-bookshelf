@@ -1,4 +1,3 @@
-@import 'tippy.js/dist/tippy.css';
 @import './confirmationmodal.css';
 @import './nux.css';
 @import './pluginsettings.css';
@@ -33,8 +32,4 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-.tippy-box[data-theme~='error'] {
-  color: var(--text-error);
 }

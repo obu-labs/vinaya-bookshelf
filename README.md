@@ -39,4 +39,3 @@ This plugin is provided under the MIT License.
 
 It uses:
  - [JSZip](https://stuk.github.io/jszip/)
- - [Tippy.js](https://atomiks.github.io/tippyjs/)
