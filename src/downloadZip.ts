@@ -1,4 +1,4 @@
-import { App, requestUrl, TFile, TFolder, Notice, TAbstractFile } from "obsidian";
+import { App, requestUrl, Notice } from "obsidian";
 import * as JSZip from 'jszip';
 import { hashForFileHashes, sha256 } from "./hashutils";
 import { pruneFolder } from "./fileutils";
@@ -55,10 +55,10 @@ export default async function downloadZip(
 
     // Ensure parent folders exist
     // const folderPath = fullPath.split('/').slice(0, -1).join('/');
-    let pathParts = path.split('/');
+    const pathParts = path.split('/');
     pathParts.pop(); // Remove filename
     let folderPath = pathParts.shift();
-    let is_in_excluded_folder: boolean = false;
+    let is_in_excluded_folder = false;
     while(folderPath) {
       if (exclusionSet.has(folderPath)) {
         is_in_excluded_folder = true;
