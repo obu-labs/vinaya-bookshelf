@@ -47,8 +47,8 @@ export async function get_app_settings(app: App): Promise<Record<string, unknown
 
 export async function checkAppSettings(plugin: VinayaBookshelfPlugin) {
   if (is_settings_modal_open()) {
-    plugin.settingsChecker = setTimeout(async () => {
-      await checkAppSettings(plugin);
+    plugin.settingsChecker = setTimeout(() => {
+      void checkAppSettings(plugin);
     }, 800); // Try again quickly as this is a cheap check
     return;
   }
@@ -123,7 +123,7 @@ export async function checkAppSettings(plugin: VinayaBookshelfPlugin) {
     );
     new Notice("Settings reverted successfully.");
   }
-  plugin.settingsChecker = setTimeout(async () => {
-    await checkAppSettings(plugin);
+  plugin.settingsChecker = setTimeout(() => {
+    void checkAppSettings(plugin);
   }, SETTINGS_CHECK_INTERVAL);
 }

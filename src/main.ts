@@ -68,7 +68,7 @@ export default class VinayaBookshelfPlugin extends Plugin {
     });
 
     // Defer checks until everything is loaded
-    setTimeout(async () => {
+    setTimeout(() => {void (async () => {
       if (!this.data.nuxShown) {
         new Notice("The Vinaya Bookshelf Plugin is Enabled!");
         if (!Object.entries(this.data.canonicalVNMs).length) {
@@ -85,7 +85,7 @@ export default class VinayaBookshelfPlugin extends Plugin {
       if (!this.data.nuxShown) {
         await openNuxModelWhenReady(this);
       }
-    }, 1500);
+    })(); }, 1500);
   }
 
   onunload() {

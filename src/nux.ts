@@ -56,7 +56,7 @@ class NuxModal extends Modal {
     
     const second_header = second_page.createDiv({ cls: "nux-modal-header" });
     second_header.createEl("h2", { text: "How the Bookshelf Works", cls: "nux-modal-title" });
-    let p = second_header.createEl("p", { text: "Your folder " });
+    const p = second_header.createEl("p", { text: "Your folder " });
     this.folderNameSpan = p.createSpan({ cls: "folder-name" });
     p.createSpan({ text: " will live alongside the following synced folders in this vault:" });
     const synced_folders = second_page.createEl("table", { cls: "nux-modal-synced-folders" });
@@ -95,8 +95,8 @@ class NuxModal extends Modal {
       JSON.stringify(app_settings, null, 2),
     );
     new Notice(`Your folder "${name}" has been created and set as the default for new notes!`);
-    this.plugin.settingsChecker = setTimeout(async () => {
-      await checkAppSettings(this.plugin);
+    this.plugin.settingsChecker = setTimeout(() => {
+      void checkAppSettings(this.plugin);
     }, 60000);
   }
   async download_folder(folder_name: string, loading_spinner: HTMLDivElement) {
