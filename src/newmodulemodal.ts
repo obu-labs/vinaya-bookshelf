@@ -24,7 +24,7 @@ export default class NewModuleModal extends Modal {
     buttonDiv.createEl("button", {
       text: `Don't subscribe to "${module.folder_name}"`,
     }).addEventListener("click", () => {
-      module.unsubscribe();
+      void module.unsubscribe();
       this.close();
     });
     buttonDiv.createEl("button", {
@@ -43,6 +43,8 @@ export default class NewModuleModal extends Modal {
       });
       module.update().then(() => {
         p.setText("Installation complete. You may now close this dialog.");
+      }).catch(() => {
+        p.setText("There was an error installing.");
       });
     })
   }

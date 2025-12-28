@@ -91,7 +91,7 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
         } else {
           btn.setButtonText('Update now');
           btn.onClick(() => {
-            this.plugin.force_update();
+            void this.plugin.force_update();
           });
         }
       });
@@ -152,11 +152,11 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
               // Explicitly changing subscription resets the punt time
               delete this.plugin.data.lastUpdatedTimes[name + " Folder Punted"];
               if (value) {
-                updater.subscribe().then(() => {
+                void updater.subscribe().then(() => {
                   this.refreshDisplay();
                 });
               } else {
-                updater.unsubscribe().then(() => {
+                void updater.unsubscribe().then(() => {
                   this.refreshDisplay();
                 });
               }
@@ -303,7 +303,7 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
               this.plugin.data.knownFolders[vnm_data.folder] = vnm_data;
               this.plugin.data.lastUpdatedTimes[vnm_data.folder + " VNM"] = Date.now();
               this.plugin.data.userVNMs[vnm_data.folder] = url;
-              this.plugin.save();
+              await this.plugin.save();
               const modal = new NewModuleModal(
                 this.plugin,
                 new FolderUpdater(this.plugin, vnm_data.folder)

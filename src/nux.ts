@@ -46,7 +46,7 @@ class NuxModal extends Modal {
           .setDisabled(name.length < 2)
           .setCta()
           .onClick(() => {
-            this.submit(name);
+            void this.submit(name);
             this.folderNameSpan.setText(name);
             first_page.addClass("hidden");
             second_page.removeClass("hidden");
@@ -71,7 +71,7 @@ class NuxModal extends Modal {
       folder_row.createEl("th", { text: folder_name });
       folder_row.createEl("td", { text: vnm.description });
       const spinner = folder_row.createEl("td").createDiv({ cls: "loading-spinner" });
-      this.download_folder(folder_name, spinner);
+      void this.download_folder(folder_name, spinner);
     }
     second_page.createEl("p", { text: "The Vinaya Bookshelf Plugin will automatically update these folders, so don't modify them. Place your notes in your own folder which lives alongside these. To share your notebook with others, simply send them your folder. That's it!" });
     second_page.createEl("p", { text: "For more information about how Vinaya Bookshelf works, see " }).createEl("a", { text: "the documentation.", href: "https://labs.buddhistuniversity.net/vinaya/docs/guides" });
@@ -89,7 +89,7 @@ class NuxModal extends Modal {
     name = normalizePath(name);
     app_settings["newFileFolderPath"] = name;
     app_settings["attachmentFolderPath"] = `${name}/attachments`;
-    this.app.vault.adapter.mkdir(name);
+    await this.app.vault.adapter.mkdir(name);
     await this.app.vault.adapter.write(
       app_settings_path(this.app),
       JSON.stringify(app_settings, null, 2),
@@ -115,7 +115,7 @@ class NuxModal extends Modal {
 export default async function openNuxModelWhenReady(plugin: VinayaBookshelfPlugin) {
   if (is_settings_modal_open()) {
     setTimeout(() => {
-      openNuxModelWhenReady(plugin);
+      void openNuxModelWhenReady(plugin);
     }, 800);
   } else {
     let app_settings = await get_app_settings(this.app);

@@ -274,12 +274,12 @@ export default class VinayaBookshelfPlugin extends Plugin {
     }
     if (this.data.installedFolders[file.path]) {
       const folder_updater = new FolderUpdater(this, file.path);
-      folder_updater.unsubscribe(true);
+      void folder_updater.unsubscribe(true);
     }
     const puntkey = file.path + " Folder Punted";
     if (this.data.lastUpdatedTimes[puntkey]) {
       delete this.data.lastUpdatedTimes[puntkey];
-      this.save();
+      void this.save();
     }
   }
 
@@ -302,13 +302,13 @@ export default class VinayaBookshelfPlugin extends Plugin {
         if (viewState.state.mode === "source") {
           if (!viewState.state) viewState.state = {} 
           viewState.state.mode = "preview";
-          activeLeaf.setViewState(viewState);
+          void activeLeaf.setViewState(viewState);
         }
       } else {
         if (this.isPersonalFile(file)) {
           if (viewState.state.mode === "preview") { 
             viewState.state.mode = "source";
-            activeLeaf.setViewState(viewState);
+            void activeLeaf.setViewState(viewState);
             activeView.editor.focus();
           }
         }
