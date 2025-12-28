@@ -70,7 +70,7 @@ export default class VinayaBookshelfPlugin extends Plugin {
     // Defer checks until everything is loaded
     setTimeout(() => {void (async () => {
       if (!this.data.nuxShown) {
-        new Notice("The Vinaya Bookshelf Plugin is Enabled!");
+        new Notice("The vinaya bookshelf plugin is enabled!");
         if (!Object.entries(this.data.canonicalVNMs).length) {
           // Initialize with a basic set in case the canonical url is down
           this.data.canonicalVNMs =  {

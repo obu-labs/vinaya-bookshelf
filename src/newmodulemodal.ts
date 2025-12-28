@@ -6,7 +6,7 @@ export default class NewModuleModal extends Modal {
   constructor(plugin: VinayaBookshelfPlugin, module: FolderUpdater) {
     super(plugin.app);
 
-    this.setTitle("🎉 A new module is available!");
+    this.setTitle("A new module is available!");
     this.modalEl.addClass("new-module-modal");
     const content = this.contentEl;
 
@@ -14,7 +14,7 @@ export default class NewModuleModal extends Modal {
     const folder_info = content.createDiv({ cls: "folder-info" });
     folder_info.createEl("h5", { text: module.folder_name }).createEl("a", {
       href: plugin.data.knownFolders[module.folder_name].more_info,
-      text: "(Source)",
+      text: "source",
     });
     folder_info.createEl("p", {
       text: plugin.data.knownFolders[module.folder_name].description
@@ -33,7 +33,7 @@ export default class NewModuleModal extends Modal {
     }).addEventListener("click", () => {
       content.empty();
       const p = content.createEl("p", {
-        text: "Great! Vinaya Bookshelf will now download and install the new module in the background. You may close this dialog and continue to use the app but please don't close Obsidian until the installation has completed."
+        text: "Great! Vinaya bookshelf will now download and install the new module in the background. You may close this dialog and continue to use the app but please don't close obsidian until the installation has completed."
       });
       content.createEl("button", {
         text: "Close",

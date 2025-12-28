@@ -60,7 +60,7 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
-      .setName('Force Update')
+      .setName('Force update')
       .setDesc(createFragment(
         (fragment) => {
           if (this.is_updating) {
@@ -89,7 +89,7 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
           btn.setDisabled(true);
           btn.setClass('loading-spinner');
         } else {
-          btn.setButtonText('Update Now');
+          btn.setButtonText('Update now');
           btn.onClick(() => {
             this.plugin.force_update();
           });

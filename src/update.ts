@@ -186,7 +186,7 @@ export class VNMListUpdater extends BaseDatumUpdater {
       return true;
     } catch (e) {
       console.error(e);
-      new Notice(`Error updating the Canonical VNM List. No connection?`);
+      new Notice(`Error updating the canonical VNM list. No connection?`);
     }
     return false;
   }
@@ -336,7 +336,7 @@ export class FolderUpdater extends BaseDatumUpdater {
     if (folder && !silently) {
       const message_fragment = new DocumentFragment();
       message_fragment.createEl("p", {
-        text: "Vinaya Bookshelf will no longer download updates for this module. Would you also like to delete the folder?"
+        text: "Bookshelf will no longer download updates for this module. Would you also like to delete the folder?"
       });
       const dependents = this.plugin.installed_modules_relying_on(this.folder_name);
       if (dependents.length > 0) {

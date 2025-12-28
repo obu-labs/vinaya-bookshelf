@@ -25,13 +25,13 @@ class NuxModal extends Modal {
     const second_page = this.contentEl.createDiv({ cls: "nux-modal-page hidden" });
     const header = first_page.createDiv({ cls: "nux-modal-header" });
     header.createEl("h1", { text: "Welcome", cls: "nux-modal-title" });
-    header.createEl("h2", { text: "To the Vinaya Bookshelf!", cls: "nux-modal-subtitle" });
-    header.createEl("p", { text: "Your home for studying the Buddhist Monastic rules." });
+    header.createEl("h2", { text: "to the vinaya bookshelf", cls: "nux-modal-subtitle" });
+    header.createEl("p", { text: "your home for studying the monastic rules" });
 
     const settings = first_page.createDiv({ cls: "nux-modal-settings" });
     let name = "";
     new Setting(settings)
-      .setName('Your Name')
+      .setName('Your name')
       .addText((text) =>
         text.setValue(name).onChange((value) => {
           name = value;
@@ -55,14 +55,14 @@ class NuxModal extends Modal {
       });
     
     const second_header = second_page.createDiv({ cls: "nux-modal-header" });
-    second_header.createEl("h2", { text: "How the Bookshelf Works", cls: "nux-modal-title" });
+    second_header.createEl("h2", { text: "How the plugin works", cls: "nux-modal-title" });
     const p = second_header.createEl("p", { text: "Your folder " });
     this.folderNameSpan = p.createSpan({ cls: "folder-name" });
     p.createSpan({ text: " will live alongside the following synced folders in this vault:" });
     const synced_folders = second_page.createEl("table", { cls: "nux-modal-synced-folders" });
     const thead = synced_folders.createEl("thead");
     const headrow = thead.createEl("tr");
-    headrow.createEl("th", { text: "Folder Name" });
+    headrow.createEl("th", { text: "Folder name" });
     headrow.createEl("th", { text: "Description" });
     headrow.createEl("th", { text: "Installed" });
     const tbody = synced_folders.createEl("tbody");
@@ -78,7 +78,7 @@ class NuxModal extends Modal {
     
     new Setting(second_page).addButton((btn) =>
       btn
-        .setButtonText('Sounds Good!')
+        .setButtonText('Sounds good!')
         .setCta()
         .onClick(() => {
           this.close();
