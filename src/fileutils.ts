@@ -1,4 +1,4 @@
-import { App, requestUrl, TFile, TFolder, FileStats, Notice, TAbstractFile } from "obsidian";
+import { App, TFile, TFolder, FileStats, Notice, TAbstractFile } from "obsidian";
 
 /**
  * Remove all files in `folder` except for those in `filesToKeep`.
@@ -32,7 +32,7 @@ export async function pruneFolder(app: App, folder: TFolder, filesToKeep: Iterab
     }
 
     if (!(node instanceof TFolder)) {
-      throw new Error(`Unknown file type: ${node}`);
+      throw new Error(`Unknown file type: ${typeof node}`);
     }
 
     let keptChildren = false;
