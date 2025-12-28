@@ -8,7 +8,21 @@ import confirmationModal from "./confirmationmodal";
 import NewModuleModal from "./newmodulemodal";
 import { hashForFolder } from "./hashutils";
 
-dayjs.extend((relativeTime as any).default || relativeTime);
+function isPluginFunc(value: unknown): value is dayjs.PluginFunc {
+  return typeof value === "function";
+}
+
+const plugin = isPluginFunc(relativeTime)
+  ? relativeTime
+  : isPluginFunc((relativeTime as Record<string, unknown>).default)
+    ? (relativeTime as { default: dayjs.PluginFunc }).default
+    : undefined;
+
+if (!plugin) {
+  throw new Error("Invalid dayjs plugin import");
+}
+
+dayjs.extend(plugin);
 
 export class VinayaBookshelfSettingsTab extends PluginSettingTab {
   plugin: VinayaBookshelfPlugin;

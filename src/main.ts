@@ -42,7 +42,7 @@ const DEFAULT_DATA: VBPluginData = {
 
 export default class VinayaBookshelfPlugin extends Plugin {
   data: VBPluginData;
-  settingsChecker: any;
+  settingsChecker: NodeJS.Timeout;
   settingsTab: VinayaBookshelfSettingsTab;
   personalFolderName: FolderName;
 
@@ -152,7 +152,7 @@ export default class VinayaBookshelfPlugin extends Plugin {
         }
       }
       for (const path of submodule.paths) {
-        let pathParts = path.split("/");
+        const pathParts = path.split("/");
         pathParts.unshift(folder_name);
         if (trieHasPath(merged_reqs, pathParts)) {
           ret.push(installed_folder_name);

@@ -85,7 +85,7 @@ class NuxModal extends Modal {
         }));
   }
   async submit(name: string) {
-    let app_settings = await get_app_settings(this.app);
+    const app_settings = await get_app_settings(this.app);
     name = normalizePath(name);
     app_settings["newFileFolderPath"] = name;
     app_settings["attachmentFolderPath"] = `${name}/attachments`;

@@ -6,13 +6,13 @@ import VinayaBookshelfPlugin from "./main";
 // and not wasting system resources reading the file again and again
 const SETTINGS_CHECK_INTERVAL = 20 * 1000;
 
-const ENFORCED_APP_SETTINGS: Record<string, any> = {
+const ENFORCED_APP_SETTINGS: Record<string, string | boolean> = {
   "newLinkFormat": "relative",
   "useMarkdownLinks": true,
   "newFileLocation": "folder",
 };
 
-export function recommended_app_settings(newFileFolderPath: string): Record<string, any> {
+export function recommended_app_settings(newFileFolderPath: string): Record<string, unknown> {
   return Object.assign({}, ENFORCED_APP_SETTINGS, {
     "propertiesInDocument": "visible",
     "spellcheck": false,
@@ -36,9 +36,9 @@ export function app_settings_path(app: App): string {
   return normalizePath(app_settings_path);
 }
 
-export async function get_app_settings(app: App): Promise<Record<string, any>> {
-  let config_json = await app.vault.adapter.read(app_settings_path(app));
-  let config: Record<string, any> = {};
+export async function get_app_settings(app: App): Promise<Record<string, unknown>> {
+  const config_json = await app.vault.adapter.read(app_settings_path(app));
+  let config: Record<string, unknown> = {};
   if (config_json) {
     config = JSON.parse(config_json);
   }
@@ -52,11 +52,13 @@ export async function checkAppSettings(plugin: VinayaBookshelfPlugin) {
     }, 800); // Try again quickly as this is a cheap check
     return;
   }
-  let config = await get_app_settings(plugin.app);
-  plugin.personalFolderName = config["newFileFolderPath"];
-  let changed_settings: Map<string, string> = new Map<string, string>();
+  const config = await get_app_settings(plugin.app);
+  if (typeof config["newFileFolderPath"] === "string") {
+    plugin.personalFolderName = config["newFileFolderPath"];
+  }
+  const changed_settings: Map<string, string> = new Map<string, string>();
   for (const key in ENFORCED_APP_SETTINGS) {
-    if (config[key] !== ENFORCED_APP_SETTINGS[key]) {
+    if (config[key] !== ENFORCED_APP_SETTINGS[key] && typeof config[key] === "string") {
       changed_settings.set(key, config[key]);
       config[key] = ENFORCED_APP_SETTINGS[key];
     }
@@ -68,7 +70,7 @@ export async function checkAppSettings(plugin: VinayaBookshelfPlugin) {
     }
     settings_string += ":";
     let i = 0;
-    for (const [setting_name, bad_value] of changed_settings.entries()) {
+    for (const [setting_name] of changed_settings.entries()) {
       settings_string += ` "${setting_name}"`;
       if (changed_settings.size > 2) {
         settings_string += ",";
@@ -85,7 +87,7 @@ export async function checkAppSettings(plugin: VinayaBookshelfPlugin) {
     }
     settings_string += " changed to";
     i = 0;
-    for (const [setting_name, bad_value] of changed_settings.entries()) {
+    for (const [, bad_value] of changed_settings.entries()) {
       settings_string += ` "${bad_value}"`;
       if (changed_settings.size > 2) {
         settings_string += ",";

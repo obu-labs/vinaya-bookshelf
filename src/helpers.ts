@@ -1,22 +1,26 @@
 
-export function assert(truth: any, message?: string): void {
+export function assert(truth: unknown, message?: string): void {
   if (!truth) {
     throw new Error("Assertion failed" + (message ? ": " + message : ""));
   }
 }
 
+export type StringTree = {
+  [key: string]: StringTree;
+};
+
 export function isUrl(str: string): boolean {
   return /^https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+(?:\S*)$/i.test(str);
 }
 
-export function getKeyWithValue(map: Record<string, any>, needle: any): string | undefined {
+export function getKeyWithValue(map: Record<string, unknown>, needle: unknown): string | undefined {
   return Object.entries(map).find(([, v]) => v === needle)?.[0];
 }
 
 export function deepMergeTrie(
-  target: Record<string, any>,
-  source: Record<string, any>
-): Record<string, any> {
+  target: StringTree,
+  source: StringTree
+): StringTree {
   for (const key in source) {
     if (
       key in target &&
@@ -31,15 +35,15 @@ export function deepMergeTrie(
   return target;
 }
 
-export function deepMergeTries(...objects: Record<string, any>[]): Record<string, any> {
+export function deepMergeTries(...objects: StringTree[]): StringTree {
   return objects.reduce((acc, obj) => deepMergeTrie(acc, obj), {});
 }
 
 export function trieHasPath(
-  trie: Record<string, any>,
+  trie: StringTree,
   keys: Iterable<string>
 ): boolean {
-  let current: any = trie;
+  let current: StringTree = trie;
   for (const key of keys) {
     if (
       typeof current !== 'object' ||

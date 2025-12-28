@@ -4,7 +4,7 @@ import { hashForFolder } from "./hashutils";
 import downloadZip from "./downloadZip";
 import confirmationModal from "./confirmationmodal";
 import { statsForFolder } from "./fileutils";
-import { assert, getKeyWithValue } from "./helpers";
+import { assert, getKeyWithValue, StringTree } from "./helpers";
 
 const CANONICAL_VNM_LIST_URL = "https://labs.buddhistuniversity.net/vinaya/canonicalvnms.json";
 
@@ -14,8 +14,8 @@ export type URLString = string;
 export interface SubmoduleMetadata {
   name: string;
   paths: string[];
-  requires: Record<string, any>;
-};
+  requires: StringTree;
+}
 
 const VNMMetadataShape = {
   folder: 'string', // The folder name as realized
@@ -30,7 +30,7 @@ const VNMMetadataShape = {
 export type VNMMetadata = {
   [K in keyof typeof VNMMetadataShape as typeof VNMMetadataShape[K] extends 'array' ? never : K]:
     typeof VNMMetadataShape[K] extends 'string' ? string :
-    typeof VNMMetadataShape[K] extends 'object' ? Record<string, Record<string, any>> :
+    typeof VNMMetadataShape[K] extends 'object' ? StringTree :
     never;
 } & {
   // Mark the 'array' fields as optional
@@ -46,13 +46,14 @@ export type VNMMetadata = {
  */
 export async function fetch_vnm(url: string): Promise<VNMMetadata> {
   const response = await requestUrl(url);
-  const metadata: any = response.json;
-  assert(typeof metadata === "object", "VNMs are JSON objects");
+  assert(typeof response.json === "object", "VNMs are JSON objects");
+  const metadata = response.json as Record<string, unknown>;
   for (const [key, value] of Object.entries(VNMMetadataShape)) {
     if (value === 'array') {
       if (metadata[key]) { // array values are optional
         assert(Array.isArray(metadata[key]), `${key} must be an array`);
-        for (const item of metadata[key]) {
+        const arr = metadata[key] as unknown[];
+        for (const item of arr) {
           assert(typeof item === 'object', `${key} must be an array of objects`);
         }
       }
@@ -60,7 +61,7 @@ export async function fetch_vnm(url: string): Promise<VNMMetadata> {
       assert(typeof metadata[key] === value, `${key} must be a(n) ${value}`);
     }
   }
-  return metadata;
+  return metadata as VNMMetadata;
 }
 
 export interface InstalledFolderRecord {
