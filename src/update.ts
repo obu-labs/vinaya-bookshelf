@@ -69,7 +69,7 @@ export interface InstalledFolderRecord {
   hash: string;
 }
 
-class BaseDatumUpdater {
+abstract class BaseDatumUpdater {
   plugin: VinayaBookshelfPlugin;
   constructor(plugin: VinayaBookshelfPlugin) {
     this.plugin = plugin;
@@ -88,9 +88,7 @@ class BaseDatumUpdater {
    * 
    * @returns true if it would like to save the plugin's data
    */
-  async perform_update(): Promise<boolean> {
-    return false;
-  }
+  abstract perform_update(): Promise<boolean>;
 
   check_how_often(): number { // in Days
     return 7;

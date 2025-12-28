@@ -123,7 +123,6 @@ export class VinayaBookshelfSettingsTab extends PluginSettingTab {
                 },
                 cls: "fullwidth",
               });
-              console.log(input);
               input.addEventListener("focus", () => {
                 input.select();
               });
